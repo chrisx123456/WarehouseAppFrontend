@@ -1,0 +1,73 @@
+﻿nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav li {
+    margin-bottom: 5px;
+    position: relative; /* Dla pozycjonowania podmenu */
+}
+
+.nav-link {
+    display: block;
+    padding: 8px 16px;
+    text-decoration: none;
+    color: #333;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: left;
+}
+
+    .nav-link:hover {
+        background-color: #f0f0f0;
+    }
+
+.nav-item-header {
+    display: block;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: bold; /* Pogrubienie dla elementów rozwijanych */
+    white-space: nowrap;
+    text-align: left;
+}
+
+    .nav-item-header:hover {
+        background-color: #f0f0f0;
+    }
+
+
+.arrow {
+    margin-left: 8px;
+    font-size: 1.2em;
+    user-select: none;
+}
+
+/* Style dla podlisty */
+nav li ul ul {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px 0;
+    min-width: 150px;
+    z-index: 10;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    flex-direction: column;
+    white-space: nowrap;
+}
+
+nav li:hover > ul {
+    display: block;
+}
+
+nav ul ul li .nav-link { /* Stylujemy tylko .nav-link w podmenu */
+    font-weight: normal; /* Usuwamy pogrubienie z linków w podmenu */
+}
+
+nav ul ul li .nav-item-header {
+    font-weight: normal;
+}

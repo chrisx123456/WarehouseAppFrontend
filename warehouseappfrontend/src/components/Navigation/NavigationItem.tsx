@@ -2,6 +2,8 @@
 import { Link } from 'react-router-dom';
 import { NavigationItemData } from './NavigationData';
 import { UserRole } from '../../types/User'; // Upewnij się, że masz zdefiniowany typ User
+import { FaChevronDown, FaChevronUp } from 'react-icons/fa'; // Import ikon
+import './Navigation.css'
 
 interface Props {
     item: NavigationItemData,
@@ -19,9 +21,12 @@ const NavigationItem: React.FC<Props> = ({ item, userRole }) => {
         <li>
             {item.children ? (
                 <>
-                    <button onClick={() => setIsOpen(!isOpen)}>
-                        {item.label}
-                    </button>
+                    <div className="nav-item-header" onClick={() => setIsOpen(!isOpen)}>
+                        <span className="nav-item-label">{item.label}</span> {/* Dodany span dla label */}
+                        <span className="arrow">
+                            {isOpen ? <FaChevronUp /> : <FaChevronDown />} {/* Zmiana ikon */}
+                        </span>
+                    </div>
                     {isOpen && (
                         <ul>
                             {item.children.map((child) => (
@@ -31,7 +36,9 @@ const NavigationItem: React.FC<Props> = ({ item, userRole }) => {
                     )}
                 </>
             ) : (
-                <Link to={item.path || "#"}>{item.label}</Link>
+                <Link to={item.path || "#"} className="nav-link"> {/* Dodana klasa dla linku */}
+                    {item.label}
+                </Link>
             )}
         </li>
     );
