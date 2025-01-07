@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35521.163 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "warehouseappfrontend", "WarehouseAppFrontend\warehouseappfrontend.esproj", "{30E34992-764B-4573-91C1-322DFAD2BCDE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{30E34992-764B-4573-91C1-322DFAD2BCDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30E34992-764B-4573-91C1-322DFAD2BCDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30E34992-764B-4573-91C1-322DFAD2BCDE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{30E34992-764B-4573-91C1-322DFAD2BCDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30E34992-764B-4573-91C1-322DFAD2BCDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30E34992-764B-4573-91C1-322DFAD2BCDE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
