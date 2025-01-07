@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom'; // Zostawiamy useNavigate
 import Navigation from './components/Navigation/Navigation';
 import Content from './components/Content/Content';
 import Home from './pages/Home';
@@ -155,18 +155,18 @@ const App: React.FC = () => {
     }
 
     return (
-            <div className="app-container">
-                {user && <Navigation user={user} />}
-                <div className="content-wrapper">
-                    {user && <button onClick={handleLogout} className="logout-button">Wyloguj</button>} {/* Warunkowe renderowanie */}
-                    <Content>
-                        <Routes>
-                            <Route path="/" element={<Home />} />
-                            {/* Inne route'y */}
-                        </Routes>
-                    </Content>
-                </div>
+        <div className="app-container">
+            {user && <Navigation user={user} />}
+            <div className="content-wrapper">
+                {user && <button onClick={handleLogout} className="logout-button">Wyloguj</button>} {/* Warunkowe renderowanie */}
+                <Content>
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        {/* Inne route'y */}
+                    </Routes>
+                </Content>
             </div>
+        </div>
     );
 };
 

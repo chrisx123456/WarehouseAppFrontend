@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { NavigationItemData } from './NavigationData';
+import { UserRole } from '../../types/User'; // Upewnij się, że masz zdefiniowany typ User
 
 interface Props {
     item: NavigationItemData,
@@ -10,7 +11,7 @@ interface Props {
 const NavigationItem: React.FC<Props> = ({ item, userRole }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    if (item.allowedRoles && !item.allowedRoles.includes(userRole as any)) {
+    if (item.allowedRoles && !item.allowedRoles.includes(userRole as UserRole)) {
         return null;
     }
 
