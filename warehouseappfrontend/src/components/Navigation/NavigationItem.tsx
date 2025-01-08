@@ -2,7 +2,8 @@
 import { Link } from 'react-router-dom';
 import { NavigationItemData } from './NavigationData';
 import { UserRole } from '../../types/User'; // Upewnij się, że masz zdefiniowany typ User
-import { FaChevronDown, FaChevronUp } from 'react-icons/fa'; // Import ikon
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Poprawny import
+import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons'; // Import ikon
 import './Navigation.css'
 
 interface Props {
@@ -24,7 +25,7 @@ const NavigationItem: React.FC<Props> = ({ item, userRole }) => {
                     <div className="nav-item-header" onClick={() => setIsOpen(!isOpen)}>
                         <span className="nav-item-label">{item.label}</span> {/* Dodany span dla label */}
                         <span className="arrow">
-                            {isOpen ? <FaChevronUp /> : <FaChevronDown />} {/* Zmiana ikon */}
+                            {isOpen ? <FontAwesomeIcon icon={faChevronUp} /> : <FontAwesomeIcon icon={faChevronDown} />}
                         </span>
                     </div>
                     {isOpen && (

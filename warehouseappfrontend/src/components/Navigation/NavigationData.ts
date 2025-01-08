@@ -17,7 +17,7 @@ export const navigationData: NavigationItemData[] = [
         children: [
             {
                 label: "All categories",
-                path: "listCategories",
+                path: "/categories",
                 allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin],
             },
         ],

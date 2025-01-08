@@ -3,6 +3,8 @@ import { Routes, Route, useNavigate } from 'react-router-dom'; // Zostawiamy use
 import Navigation from './components/Navigation/Navigation';
 import Content from './components/Content/Content';
 import Home from './pages/Home';
+import Categories from './pages/category/Categories'
+
 import { User } from './types/User'; // Upewnij się, że masz zdefiniowany typ User
 import './App.css';
 import { useApi } from './ApiContext';
@@ -162,7 +164,7 @@ const App: React.FC = () => {
                 <Content>
                     <Routes>
                         <Route path="/" element={<Home />} />
-                        {/* Inne route'y */}
+                        <Route path="/categories" element={<Categories />} />
                     </Routes>
                 </Content>
             </div>
