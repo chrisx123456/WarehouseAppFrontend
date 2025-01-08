@@ -2,12 +2,13 @@
 import { useApi } from '../../ApiContext';
 import './Categories.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faCheck, faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
 
 
 interface Category {
     name: string;
     vat: number;
+    isEditing?: boolean;
 }
 interface ErrorResponse {
     Message?: string 
@@ -72,8 +73,53 @@ const Categories: React.FC = () => {
     };
 
     const handleEdit = (categoryName: string) => {
-        console.log(`Edit category with name: ${categoryName}`);
-        // Logika edycji z użyciem nazwy
+        setCategories(
+            categories.map((category) =>
+                category.name === categoryName
+                    ? { ...category, isEditing: true }
+                    : category
+            )
+        );
+    };
+    const handleSave = async (categoryName: string, newVat: number) => {
+        try {
+            const response = await fetch(`${baseUrl}/Category/${categoryName}`, {
+                method: 'PUT', // Lub PATCH, w zależności od API
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+                body: JSON.stringify({ name: categoryName, vat: newVat }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(`Error while updating: ${response.status} - ${errorData.Message || 'No details'}`);
+            }
+
+            setCategories(
+                categories.map((category) =>
+                    category.name === categoryName
+                        ? { ...category, vat: newVat, isEditing: false }
+                        : category
+                )
+            );
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Wystąpił błąd");
+            }
+        }
+    };
+    const handleCancel = (categoryName: string) => {
+        setCategories(
+            categories.map((category) =>
+                category.name === categoryName
+                    ? { ...category, isEditing: false }
+                    : category
+            )
+        );
     };
 
     const canEdit = (role: string) => {
@@ -115,17 +161,51 @@ const Categories: React.FC = () => {
                 </thead>
                 <tbody>
                     {categories.map((category) => (
-                        <tr key={category.name}> {/* Używamy nazwy jako key */}
+                        <tr key={category.name}>
                             <td>{category.name}</td>
-                            <td>{category.vat}</td>
-                            {canEditVal && canDeleteVal && <td>
-                                {canEditVal && <button className="edit-button" onClick={() => handleEdit(category.name)}>
-                                    <FontAwesomeIcon icon={faEdit} />
-                                </button>}
-                                {canDeleteVal && <button className="delete-button" onClick={() => handleDelete(category.name)}>
-                                    <FontAwesomeIcon icon={faTrash} />
-                                </button>}
-                            </td>}
+                            <td>
+                                {category.isEditing ? (
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="99"
+                                        value={category.vat}
+                                        onChange={(e) => {
+                                            const newVat = parseInt(e.target.value, 10);
+                                            setCategories(
+                                                categories.map((c) =>
+                                                    c.name === category.name ? { ...c, vat: isNaN(newVat) ? 0 : newVat } : c
+                                                )
+                                            );
+                                        }}
+                                    />
+                                ) : (
+                                    category.vat
+                                )}
+                            </td>
+                            {canEditVal && canDeleteVal && (
+                                <td>
+                                    {category.isEditing ? (
+                                        <>
+                                            <button className="save-button" onClick={() => handleSave(category.name, category.vat)}>
+                                                <FontAwesomeIcon icon={faCheck} />
+                                            </button>
+                                            <button className="cancel-button" onClick={() => handleCancel(category.name)}>
+                                                <FontAwesomeIcon icon={faTimes} />
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button className="edit-button" onClick={() => handleEdit(category.name)}>
+                                                <FontAwesomeIcon icon={faEdit} />
+                                            </button>
+                                            <button className="delete-button" onClick={() => handleDelete(category.name)}>
+                                                <FontAwesomeIcon icon={faTrash} />
+                                            </button>
+                                        </>
+                                    )}
+                                </td>
+                            )}
                         </tr>
                     ))}
                 </tbody>
