@@ -9,6 +9,7 @@ interface Category {
     name: string;
     vat: number;
     isEditing?: boolean;
+    oldVat?: number;
 }
 interface ErrorResponse {
     Message?: string 
@@ -19,6 +20,8 @@ const Categories: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { baseUrl } = useApi();
+    const [newCategory, setNewCategory] = useState<Category | null>(null);
+
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -47,7 +50,6 @@ const Categories: React.FC = () => {
 
         fetchCategories();
     }, [baseUrl]);
-
     const handleDelete = async (categoryName: string) => {
         try {
             const response = await fetch(`${baseUrl}/Category/${categoryName}`, { // Używamy nazwy w URL
@@ -75,23 +77,19 @@ const Categories: React.FC = () => {
     const handleEdit = (categoryName: string) => {
         setCategories(
             categories.map((category) =>
-                category.name === categoryName
-                    ? { ...category, isEditing: true }
-                    : category
+                category.name === categoryName ? { ...category, isEditing: true, oldVat: category.vat } : category
             )
         );
     };
-    const handleSave = async (categoryName: string, newVat: number) => {
+    const handleEditSave = async (categoryName: string, newVat: number) => {
         try {
-            const response = await fetch(`${baseUrl}/Category/${categoryName}`, {
-                method: 'PUT', // Lub PATCH, w zależności od API
+            const response = await fetch(`${baseUrl}/Category/${categoryName}?newVat=${newVat}`, {
+                method: 'PATCH',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
-                },
-                body: JSON.stringify({ name: categoryName, vat: newVat }),
+                }
             });
-
+            
             if (!response.ok) {
                 const errorData = await response.json() as ErrorResponse;
                 throw new Error(`Error while updating: ${response.status} - ${errorData.Message || 'No details'}`);
@@ -108,16 +106,14 @@ const Categories: React.FC = () => {
             if (err instanceof Error) {
                 setError(err.message);
             } else {
-                setError("Wystąpił błąd");
+                setError("Error occured");
             }
         }
     };
-    const handleCancel = (categoryName: string) => {
+    const handleEdittingCancel = (categoryName: string) => {
         setCategories(
             categories.map((category) =>
-                category.name === categoryName
-                    ? { ...category, isEditing: false }
-                    : category
+                category.name === categoryName ? { ...category, isEditing: false, vat: category.oldVat as number } : category
             )
         );
     };
@@ -125,11 +121,9 @@ const Categories: React.FC = () => {
     const canEdit = (role: string) => {
          return role === 'Manager' || role === 'Admin';
     };
-
     const canDelete = (role: string) => {
         return role === 'Manager' || role === 'Admin';
     };
-
     const canAdd = (role: string) => {
         return role === 'Manager' || role === 'Admin';
     };
@@ -137,20 +131,54 @@ const Categories: React.FC = () => {
     const canDeleteVal = canDelete (localStorage.getItem('role') as string);
     const canAddVal = canAdd(localStorage.getItem('role') as string);
 
-    if (loading) {
-        return <div>Ładowanie...</div>;
-    }
+    const handleAddCategory = () => {
+        setNewCategory({ name: '', vat: 0, isEditing: true });
+    };
+    const handleSaveNewCategory = async () => {
+        if (!newCategory || !/^[a-zA-Z]+$/.test(newCategory.name) || newCategory.vat < 0 || newCategory.vat > 99) {
+            setError("Name of category must containy only letters, VAT must be a number inbetween 0 and 99.");
+            return;
+        }
 
-    if (error) {
-        return <div>Błąd: {error}</div>;
+        try {
+            const response = await fetch(`${baseUrl}/Category`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+                body: JSON.stringify({ name: newCategory.name, vat: newCategory.vat }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(`Error while creating: ${response.status} - ${errorData.Message || 'No details'}`);
+            }
+
+            //const createdCategory = await response.json() as Category;
+            setCategories([...categories, { ...newCategory, isEditing: false }]); // ??????
+            setNewCategory(null);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Error occured while adding new category");
+            }
+        }
+    };
+    const handleCancelNewCategory = () => {
+        setNewCategory(null);
+    };
+
+    if (loading) {
+        return <div>Loading...</div>;
     }
 
     return (
         <div className="categories-container">
             <h1>Categories</h1>
-            {canAddVal && <button className="add-category-button">
-                <FontAwesomeIcon icon={faPlus} /> Dodaj kategorię
-            </button>}
+            {error && <div className="error-message">{error}</div>} {/* Display errors above content */}
+            {canAddVal && <button className="add-category-button" onClick={handleAddCategory}> <FontAwesomeIcon icon={faPlus} /> Dodaj kategorię</button>}
             <table>
                 <thead>
                     <tr>
@@ -160,6 +188,34 @@ const Categories: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody>
+                    {newCategory && (
+                        <tr>
+                            <td>
+                                <input
+                                    type="text"
+                                    value={newCategory.name}
+                                    onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="99"
+                                    value={newCategory.vat}
+                                    onChange={(e) => setNewCategory({ ...newCategory, vat: parseInt(e.target.value) || -1 })}
+                                />
+                            </td>
+                            <td>
+                                <button className="save-button" onClick={handleSaveNewCategory}>
+                                    <FontAwesomeIcon icon={faCheck} />
+                                </button>
+                                <button className="cancel-button" onClick={handleCancelNewCategory}>
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </button>
+                            </td>
+                        </tr>
+                    )}
                     {categories.map((category) => (
                         <tr key={category.name}>
                             <td>{category.name}</td>
@@ -171,38 +227,33 @@ const Categories: React.FC = () => {
                                         max="99"
                                         value={category.vat}
                                         onChange={(e) => {
-                                            const newVat = parseInt(e.target.value, 10);
-                                            setCategories(
-                                                categories.map((c) =>
-                                                    c.name === category.name ? { ...c, vat: isNaN(newVat) ? 0 : newVat } : c
-                                                )
-                                            );
-                                        }}
-                                    />
-                                ) : (
+                                            const newVat = parseInt(e.target.value);
+                                            setCategories(categories.map((c) => c.name === category.name ? { ...c, vat: isNaN(newVat) ? -1 : newVat } : c));
+                                        }} />
+                                    ) : (
                                     category.vat
                                 )}
                             </td>
                             {canEditVal && canDeleteVal && (
                                 <td>
                                     {category.isEditing ? (
-                                        <>
-                                            <button className="save-button" onClick={() => handleSave(category.name, category.vat)}>
+                                        <div>
+                                            <button className="save-button" onClick={() => handleEditSave(category.name, category.vat)}>
                                                 <FontAwesomeIcon icon={faCheck} />
                                             </button>
-                                            <button className="cancel-button" onClick={() => handleCancel(category.name)}>
+                                            <button className="cancel-button" onClick={() => handleEdittingCancel(category.name)}>
                                                 <FontAwesomeIcon icon={faTimes} />
                                             </button>
-                                        </>
+                                        </div>
                                     ) : (
-                                        <>
+                                        <div>
                                             <button className="edit-button" onClick={() => handleEdit(category.name)}>
                                                 <FontAwesomeIcon icon={faEdit} />
                                             </button>
                                             <button className="delete-button" onClick={() => handleDelete(category.name)}>
                                                 <FontAwesomeIcon icon={faTrash} />
                                             </button>
-                                        </>
+                                        </div>
                                     )}
                                 </td>
                             )}
