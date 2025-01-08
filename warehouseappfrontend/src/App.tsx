@@ -63,6 +63,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
             const role = user.role;
 
             localStorage.setItem('jwtToken', token);
+            localStorage.setItem('role', role);
             onLogin({ role });
 
         } catch (error: unknown) {
