@@ -6,7 +6,7 @@ import { faEdit, faTrash, faCheck, faTimes, faPlus } from '@fortawesome/free-sol
 
 interface Manufacturer {
     name: string;
-    isEditing?: boolean;
+    //isEditing?: boolean;
     oldName?: string;
 }
 
@@ -21,6 +21,10 @@ const Manufacturers: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const { baseUrl } = useApi();
     const [newManufacturer, setNewManufacturer] = useState<Manufacturer | null>(null);
+
+    const [editingManufacturerName, setEditingManufacturerName] = useState<string | null>(null);
+    const [tempManufacturerName, setTempManufacturerName] = useState('');
+
 
     useEffect(() => {
         const fetchManufacturers = async () => {
@@ -66,8 +70,10 @@ const Manufacturers: React.FC = () => {
     };
 
     const handleEdit = (manufacturerName: string) => {
+        setEditingManufacturerName(manufacturerName);
+        setTempManufacturerName(manufacturers.find(m => m.name === manufacturerName)?.name || '');
         setManufacturers(manufacturers.map(m =>
-            m.name === manufacturerName ? { ...m, isEditing: true, oldName: m.name } : m
+            m.name === manufacturerName ? { ...m, oldName: m.name } : m
         ));
     };
 
@@ -83,13 +89,11 @@ const Manufacturers: React.FC = () => {
                 throw new Error(`Error updating: ${response.status} - ${errorData.Message || 'No details'}`);
             }
 
-            setManufacturers(
-                manufacturers.map(m =>
-                    m.name === newName ?
-                        { ...m, name: newName, isEditing: false }
-                        : m
-                )
-            );
+            setManufacturers(manufacturers.map(m =>
+                m.name === oldName ? { ...m, name: tempManufacturerName, isEditing: false } : m
+            ));
+            setEditingManufacturerName(null);
+            setTempManufacturerName('');
         } catch (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message);
@@ -99,10 +103,9 @@ const Manufacturers: React.FC = () => {
         }
     };
 
-    const handleEdittingCancel = (manufacturerName: string) => {
-        setManufacturers(manufacturers.map(m =>
-            m.name === manufacturerName ? { ...m, isEditing: false, name: m.oldName as string } : m
-        ));
+    const handleEdittingCancel = () => {
+        setEditingManufacturerName(null);
+        setTempManufacturerName('');
     };
 
     const canEdit = (role: string) => role === 'Manager' || role === 'Admin';
@@ -113,7 +116,12 @@ const Manufacturers: React.FC = () => {
     const canDeleteVal = canDelete(localStorage.getItem('role') as string);
     const canAddVal = canAdd(localStorage.getItem('role') as string);
 
-    const handleAddManufacturer = () => setNewManufacturer({ name: '', isEditing: true });
+    const handleAddManufacturer = () => {
+        const newname = '';
+        setNewManufacturer({ name: newname });
+        setEditingManufacturerName(newname);
+        setTempManufacturerName(manufacturers.find(m => m.name === newname)?.name || '');
+    }
 
     const handleSaveNewManufacturer = async () => {
         //Wsm moze byc firma co ma w nazwie cyfry
@@ -138,7 +146,9 @@ const Manufacturers: React.FC = () => {
             }
 
             //const createdManufacturer = newManufacturer;
-            setManufacturers([...manufacturers, { ...newManufacturer, isEditing: false }]);
+            setManufacturers([...manufacturers, { ...newManufacturer }]);
+            setEditingManufacturerName(null);
+            setTempManufacturerName('');
             setNewManufacturer(null);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Error creating manufacturer.");
@@ -190,12 +200,12 @@ const Manufacturers: React.FC = () => {
                     {manufacturers.map((manufacturer) => (
                         <tr key={manufacturer.name}>
                             <td>
-                                {manufacturer.isEditing ? (
+                                {editingManufacturerName === manufacturer.name ? (
                                     <input
                                         type="text"
-                                        value={manufacturer.name}
-                                        onChange={(e) => setManufacturers(manufacturers.map((m) =>
-                                            m.name === manufacturer.name ? { ...m, name: e.target.value } : m))}
+                                        value={tempManufacturerName}
+                                        onChange={(e) => setTempManufacturerName(e.target.value)}
+
                                     />
                                 ) : (
                                     manufacturer.name
@@ -203,12 +213,12 @@ const Manufacturers: React.FC = () => {
                             </td>
                             {canEditVal && canDeleteVal && (
                                 <td>
-                                    {manufacturer.isEditing ? (
+                                    {editingManufacturerName === manufacturer.name ? (
                                         <>
                                             <button className="save-button" onClick={() => handleEditSave(manufacturer.oldName as string, manufacturer.name)}>
                                                 <FontAwesomeIcon icon={faCheck} />
                                             </button>
-                                            <button className="cancel-button" onClick={() => handleEdittingCancel(manufacturer.name)}>
+                                            <button className="cancel-button" onClick={() => handleEdittingCancel()}>
                                                 <FontAwesomeIcon icon={faTimes} />
                                             </button>
                                         </>
