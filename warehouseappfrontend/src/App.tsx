@@ -4,7 +4,7 @@ import Navigation from './components/Navigation/Navigation';
 import Content from './components/Content/Content';
 import Home from './pages/Home';
 import Categories from './pages/category/Categories'
-
+import Manufacturers from './pages/manufacturers/Manufacturers'
 import { User } from './types/User'; // Upewnij się, że masz zdefiniowany typ User
 import './App.css';
 import { useApi } from './ApiContext';
@@ -166,6 +166,7 @@ const App: React.FC = () => {
                     <Routes>
                         <Route path="/" element={<Home />} />
                         <Route path="/categories" element={<Categories />} />
+                        <Route path="/manufacturers" element={<Manufacturers/> }/>
                     </Routes>
                 </Content>
             </div>

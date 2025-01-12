@@ -23,6 +23,11 @@ export const navigationData: NavigationItemData[] = [
         ],
 
     },
+    {
+        label: "Manufacturers",
+        path: "/manufacturers",
+        allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin],
+    },
 
     {
         label: "Użytkownicy",
