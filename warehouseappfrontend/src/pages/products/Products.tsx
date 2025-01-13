@@ -86,7 +86,7 @@ const Products: React.FC = () => {
 
     const handleSaveNewProduct = async () => {
         if (!newProduct) {
-            setError("Wprowadź dane produktu.");
+            setError("Enter product data.");
             return;
         }
 
@@ -105,8 +105,8 @@ const Products: React.FC = () => {
                 throw new Error(`Error creating product: ${response.status} - ${errorData.Message || 'No details'}`);
             }
 
-            const createdProduct = await response.json() as Product;
-            setProducts([...products, createdProduct]);
+            //const createdProduct = await response.json() as Product;
+            setProducts([...products, newProduct]);
             setNewProduct(null); // Resetujemy formularz
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Error creating product.");
