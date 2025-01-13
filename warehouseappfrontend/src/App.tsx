@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom'; // Zostawiamy useNavigate
+import { Routes, Route, useNavigate } from 'react-router-dom'; 
 import Navigation from './components/Navigation/Navigation';
 import Content from './components/Content/Content';
 import Home from './pages/Home';

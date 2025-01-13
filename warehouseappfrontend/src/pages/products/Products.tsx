@@ -14,7 +14,12 @@ interface Product {
     ean: string;
     description?: string;
 }
-
+interface Manufacturer {
+    name: string;
+}
+interface Category {
+    name: string;
+}
 interface ErrorResponse {
     Message?: string;
 }
@@ -35,20 +40,31 @@ const Products: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const { baseUrl } = useApi();
     const [newProduct, setNewProduct] = useState<Product | null>(null);
+    const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]); // Stan dla producentów
+    const [categories, setCategories] = useState<Category[]>([]);       // Stan dla kategorii
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch(`${baseUrl}/Product`, {
-                    method: 'GET',
-                    headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` },
-                });
-                if (!response.ok) {
-                    const errorData = await response.json() as ErrorResponse;
-                    throw new Error(`Error fetching data: ${response.status} - ${errorData.Message || 'No details'}`);
-                }
-                const data = await response.json() as Product[];
-                setProducts(data);
+                const [productsResponse, manufacturersResponse, categoriesResponse] = await Promise.all([
+                    fetch(`${baseUrl}/Product`, { headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` } }),
+                    fetch(`${baseUrl}/Manufacturer`, { headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` } }),
+                    fetch(`${baseUrl}/Category`, { headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` } }),
+                ]);
+
+                if (!productsResponse.ok) throw new Error(`Error fetching products: ${productsResponse.status}`);
+                if (!manufacturersResponse.ok) throw new Error(`Error fetching manufacturers: ${manufacturersResponse.status}`);
+                if (!categoriesResponse.ok) throw new Error(`Error fetching categories: ${categoriesResponse.status}`);
+
+
+                const productsData = await productsResponse.json() as Product[];
+                const manufacturersData = await manufacturersResponse.json() as Manufacturer[];
+                const categoriesData = await categoriesResponse.json() as Category[];
+
+                setProducts(productsData);
+                setManufacturers(manufacturersData);
+                setCategories(categoriesData);
+
             } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : "An unexpected error occurred.");
             } finally {
@@ -56,7 +72,7 @@ const Products: React.FC = () => {
             }
         };
 
-        fetchProducts();
+        fetchData();
     }, [baseUrl]);
 
     const canAdd = (role: string) => role === 'Manager' || role === 'Admin';
@@ -64,6 +80,8 @@ const Products: React.FC = () => {
     const getUnitTypeLabel = (unitType: number): string => unitTypeMap[unitType] || "Unknown";
 
     const handleAddProduct = () => setNewProduct({ manufacturerName: "", name: '', tradeName: "", categoryName: "", unitType: 0, price: 0, ean: "", description: "" });
+
+
 
     const handleSaveNewProduct = async () => {
         if (!newProduct) {
@@ -96,6 +114,10 @@ const Products: React.FC = () => {
 
     const handleCancelNewProduct = () => setNewProduct(null);
 
+    const manufacturerOptions = manufacturers.map(m => ({ value: m.name, label: m.name }));
+    const categoryOptions = categories.map(c => ({ value: c.name, label: c.name }));
+
+
     if (loading) return <div>Loading...</div>;
 
     return (
@@ -123,12 +145,11 @@ const Products: React.FC = () => {
                 <tbody>
                     {newProduct && ( // Formularz dodawania jest renderowany warunkowo
                         <tr>
-                            <td><input type="text" value={newProduct.manufacturerName} onChange={(e) => setNewProduct({ ...newProduct, manufacturerName: e.target.value })} /></td>
                             <td><input type="text" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} /></td>
                             <td><input type="text" value={newProduct.tradeName} onChange={(e) => setNewProduct({ ...newProduct, tradeName: e.target.value })} /></td>
                             <td><input type="text" value={newProduct.categoryName} onChange={(e) => setNewProduct({ ...newProduct, categoryName: e.target.value })} /></td>
                             <td>
-                                <select value={newProduct.unitType} onChange={(e) => setNewProduct({ ...newProduct, unitType: parseInt(e.target.value, 10) })}>
+                                <select value={newProduct.unitType} onChange={(e) => setNewProduct({ ...newProduct, unitType: parseInt(e.target.value) })}>
                                     {Object.entries(unitTypeMap).map(([key, value]) => (
                                         <option key={key} value={key}>{value}</option>
                                     ))}
