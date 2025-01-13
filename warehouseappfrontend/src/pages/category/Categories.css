@@ -9,9 +9,16 @@ table {
 }
 
 th, td {
+    /*    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: left;*/
     padding: 8px;
     border: 1px solid #ddd;
     text-align: left;
+    /* Opcjonalnie: min-width: 100px; */
+    /*overflow: hidden;*/ /* Zapobiega "wylewaniu się" tekstu */
+    text-overflow: ellipsis; /* Dodaje elipsę (...) */
+    white-space: nowrap; /* Zapobiega łamaniu wierszy w komórce */
 }
 
 th {
@@ -43,4 +50,28 @@ th {
     border: none;
     cursor: pointer;
     margin-bottom: 10px;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    box-sizing: border-box; /* Kluczowe! */
+    padding: 5px;
+    border: 1px solid #ccc;
+}
+.react-select-container {
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 8px; /* Zmniejszamy rozmiar czcionki */
+}
+
+.react-select__control {
+    height: 20px; /* Zmniejszamy wysokość */
+    min-height: 20px; /* Ustawiamy minimalną wysokość */
+    padding: 2px 8px; /* Zmniejszamy padding */
+    border: 1px solid #ccc;
+    border-radius: 4px; /* Opcjonalnie zaokrąglenie rogów */
+    cursor: default;
+    background-color: black;
 }

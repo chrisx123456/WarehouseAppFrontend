@@ -42,8 +42,12 @@
 }
 
 .app-container {
+    /*display: flex;
+    min-height: 100vh;*/ /* Zapewnia, że kontener zajmuje co najmniej całą wysokość ekranu */
     display: flex;
-    min-height: 100vh; /* Zapewnia, że kontener zajmuje co najmniej całą wysokość ekranu */
+    flex-direction: column; /* Układ pionowy */
+    min-height: 100vh; /* Zajmuje cały ekran */
+    width: 100%;
 }
 
 nav {
@@ -67,6 +71,7 @@ nav {
     flex-direction: column;
     position: relative;
     min-height: 100vh; /* Zapewnia, że treść zajmuje co najmniej całą wysokość ekranu */
+    flex: 1; /* Content zajmuje dostępne miejsce */
 }
 
 .logout-button {

@@ -1,8 +1,9 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../ApiContext';
-import '../category/Categories.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import Select from 'react-select'; // Importujemy react-select
+import '../category/Categories.css';
 
 interface Product {
     manufacturerName: string;
@@ -132,10 +133,10 @@ const Products: React.FC = () => {
             <table>
                 <thead>
                     <tr>
-                        <th>Manufacturer Name</th>
+                        <th>Manufacturer</th>
                         <th>Name</th>
                         <th>Trade Name</th>
-                        <th>Category Name</th>
+                        <th>Category</th>
                         <th>Unit Type</th>
                         <th>Price</th>
                         <th>EAN</th>
@@ -145,9 +146,70 @@ const Products: React.FC = () => {
                 <tbody>
                     {newProduct && ( // Formularz dodawania jest renderowany warunkowo
                         <tr>
+                            <td>
+                                <Select placeholder="..." styles={{
+                                    control: (baseStyles, state) => ({
+                                        ...baseStyles,
+                                        minHeight: '32px',
+                                        height: '32px',
+                                        minWidth: '110px',
+                                        width: '110px',
+                                        fontSize: '12px',
+
+                                    }),
+                                    dropdownIndicator: (baseStyles, state) => ({
+                                        ...baseStyles,
+                                        padding: '4px',
+                                    }),
+                                    indicatorSeparator: (baseStyles, state) => ({
+                                        ...baseStyles,
+                                        visibility: 'hidden',
+                                    }),
+                                    menu: (baseStyles, state) => ({
+                                        ...baseStyles,
+                                        fontSize: '14px',
+                                        width: '150px'
+                                    }),
+
+                                }}
+                                    options={manufacturerOptions}
+                                    onChange={(selectedOption) => setNewProduct({ ...newProduct, manufacturerName: selectedOption?.value || "" })}
+                                    value={manufacturerOptions.find(option => option.value === newProduct.manufacturerName)}
+                                />
+                            </td>
                             <td><input type="text" value={newProduct.name} onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })} /></td>
                             <td><input type="text" value={newProduct.tradeName} onChange={(e) => setNewProduct({ ...newProduct, tradeName: e.target.value })} /></td>
-                            <td><input type="text" value={newProduct.categoryName} onChange={(e) => setNewProduct({ ...newProduct, categoryName: e.target.value })} /></td>
+                            <td>
+                                <Select placeholder="..." styles={{
+                                    control: (baseStyles, state) => ({
+                                        ...baseStyles,
+                                        minHeight: '32px',
+                                        height: '32px',
+                                        minWidth: '90px',
+                                        width: '90px',
+                                        fontSize: '12px',
+                                        
+                                    }),
+                                    dropdownIndicator: (baseStyles, state) => ({
+                                        ...baseStyles,
+                                        padding: '4px',
+                                    }),
+                                    indicatorSeparator: (baseStyles, state) => ({
+                                        ...baseStyles,
+                                        visibility: 'hidden',
+                                    }),
+                                    menu: (baseStyles, state) => ({
+                                        ...baseStyles,
+                                        fontSize: '14px',
+                                        width: '150px'
+                                    }),
+
+                                }}
+                                    options={categoryOptions}
+                                    onChange={(selectedOption) => setNewProduct({ ...newProduct, categoryName: selectedOption?.value || "" })}
+                                    value={categoryOptions.find(option => option.value === newProduct.categoryName)}
+                                />
+                            </td>
                             <td>
                                 <select value={newProduct.unitType} onChange={(e) => setNewProduct({ ...newProduct, unitType: parseInt(e.target.value) })}>
                                     {Object.entries(unitTypeMap).map(([key, value]) => (
