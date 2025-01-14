@@ -65,7 +65,6 @@ const Products: React.FC = () => {
                 if (!manufacturersResponse.ok) throw new Error(`Error fetching manufacturers: ${manufacturersResponse.status}`);
                 if (!categoriesResponse.ok) throw new Error(`Error fetching categories: ${categoriesResponse.status}`);
 
-
                 const productsData = await productsResponse.json() as Product[];
                 const manufacturersData = await manufacturersResponse.json() as Manufacturer[];
                 const categoriesData = await categoriesResponse.json() as Category[];
@@ -73,7 +72,6 @@ const Products: React.FC = () => {
                 setProducts(productsData);
                 setManufacturers(manufacturersData);
                 setCategories(categoriesData);
-
             } catch (err: unknown) {
                 setError(err instanceof Error ? err.message : "An unexpected error occurred.");
             } finally {
@@ -84,15 +82,22 @@ const Products: React.FC = () => {
         fetchData();
     }, [baseUrl]);
 
-    const canAdd = (role: string) => role === 'Manager' || role === 'Admin';
-    const canAddVal = canAdd(localStorage.getItem('role') as string);
+
+    const hasRole = (...allowedRoles: string[]) => (role: string) => allowedRoles.includes(role);
+    const userRole = localStorage.getItem('role') as string;
+    const { canAdd: canAddVal, canEdit: canEditVal, canDelete: canDeleteVal } = {
+        canAdd: hasRole('Manager', 'Admin')(userRole),
+        canEdit: hasRole('Manager', 'Admin')(userRole),
+        canDelete: hasRole('Manager', 'Admin')(userRole),
+    };
+
     const getUnitTypeLabel = (unitType: number): string => unitTypeMap[unitType] || "Unknown";
 
     const handleAddProduct = () => setNewProduct({ manufacturerName: "", name: '', tradeName: "", categoryName: "", unitType: 0, price: 0, ean: "", description: "" });
 
     const handleDeleteProduct = async (ean: string) => {
         try {
-            const response = await fetch(`${baseUrl}/Product/${ean}`, { // Używamy EAN w URL
+            const response = await fetch(`${baseUrl}/Product/${ean}`, { 
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
@@ -104,7 +109,7 @@ const Products: React.FC = () => {
                 throw new Error(`Error while deleting: ${response.status} - ${errorData.Message || 'No details'}`);
             }
 
-            setProducts(products.filter((product) => product.ean !== ean)); // Filtrujemy po EAN
+            setProducts(products.filter((product) => product.ean !== ean)); 
         } catch (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message);
@@ -135,15 +140,12 @@ const Products: React.FC = () => {
                 throw new Error(`Error creating product: ${response.status} - ${errorData.Message || 'No details'}`);
             }
 
-            //const createdProduct = await response.json() as Product;
             setProducts([...products, newProduct]);
             setNewProduct(null); // Resetujemy formularz
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Error creating product.");
         }
     };
-
-    const handleCancelNewProduct = () => setNewProduct(null);
 
     const manufacturerOptions = manufacturers.map(m => ({ value: m.name, label: m.name }));
     const categoryOptions = categories.map(c => ({ value: c.name, label: c.name }));
@@ -156,21 +158,6 @@ const Products: React.FC = () => {
     const closeDescriptionViewModal = () => {
         setDescriptionViewModalIsOpen(false);
         setSelectedDescriptionView(null);
-    };
-    // Above: view, Bellow: new
-    const handleDescriptionClick = () => {
-        setNewDescriptionModalIsOpen(true);
-    };
-
-    const handleDescriptionModalClose = () => {
-        setNewDescriptionModalIsOpen(false);
-    };
-
-    const handleCancelEditProduct = () => {
-        setEditingProduct(null);
-    };
-    const handleEditProduct = (product: Product) => {
-        setEditingProduct({ ...product });
     };
 
     const handleSaveEditProduct = async () => {
@@ -327,13 +314,13 @@ const Products: React.FC = () => {
                             <td><input type="number" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} /></td>
                             <td><input type="text" value={newProduct.ean} onChange={(e) => setNewProduct({ ...newProduct, ean: e.target.value })} /></td>
                             <td style={{ cursor: 'pointer' }}>
-                                <span onClick={handleDescriptionClick}>
+                                <span onClick={() => setNewDescriptionModalIsOpen(true)}>
                                     {newProduct.description && newProduct.description.length > 0 ? "..." : "Dodaj opis"}
                                 </span>
                             </td>
                             <td>
                                 <button className="save-button" onClick={handleSaveNewProduct}><FontAwesomeIcon icon={faCheck} /></button>
-                                <button className="cancel-button" onClick={handleCancelNewProduct}><FontAwesomeIcon icon={faTimes} /></button>
+                                <button className="cancel-button" onClick={() => setNewProduct(null)}><FontAwesomeIcon icon={faTimes} /></button>
                             </td>
                         </tr>
                     )}
@@ -346,10 +333,7 @@ const Products: React.FC = () => {
                             <td>{getUnitTypeLabel(product.unitType)}</td>
                             <td>
                                 {editingProduct?.ean === product.ean ? (
-                                    <input
-                                        type="number"
-                                        value={editingProduct?.price.toString() || ''}
-                                        onChange={(e) => {
+                                    <input type="number" value={editingProduct?.price || ''} onChange={(e) => {
                                             const newValue = e.target.value;
                                             setEditingProduct(prevProduct => {
                                                 if (!prevProduct) return null;
@@ -368,7 +352,7 @@ const Products: React.FC = () => {
                             <td>{product.ean}</td>
                             <td style={{ cursor: 'pointer' }}>
                                 {editingProduct?.ean === product.ean ? (
-                                    <span onClick={handleDescriptionClick}>
+                                    <span onClick={() => setNewDescriptionModalIsOpen(true)}>
                                         {editingProduct.description && editingProduct.description.length > 0 ? "..." : "Dodaj opis"}
                                     </span>
                                 ) : (
@@ -379,27 +363,28 @@ const Products: React.FC = () => {
                                     )
                                 )}
                             </td>
-                            <td>
+                            {canEditVal && canDeleteVal &&
+                                <td>
                                 {editingProduct?.ean === product.ean ? (
                                     <div>
                                         <button className="save-button" onClick={handleSaveEditProduct}>
                                             <FontAwesomeIcon icon={faCheck} />
                                         </button>
-                                        <button className="cancel-button" onClick={handleCancelEditProduct}>
+                                        <button className="cancel-button" onClick={() => setEditingProduct(null)}>
                                             <FontAwesomeIcon icon={faTimes} />
                                         </button>
                                     </div>
                                 ) : (
                                     <div>
-                                        <button className="edit-button" onClick={() => handleEditProduct(product)}>
+                                        {canEditVal && <button className="edit-button" onClick={() => setEditingProduct({ ...product })}>
                                             <FontAwesomeIcon icon={faEdit} />
-                                        </button>
-                                        <button className="delete-button" onClick={() => handleDeleteProduct(product.ean)}>
+                                        </button>}
+                                        {canDeleteVal && <button className="delete-button" onClick={() => handleDeleteProduct(product.ean)}>
                                             <FontAwesomeIcon icon={faTrash} />
-                                        </button>
+                                        </button>}
                                     </div>
                                 )}
-                            </td>
+                            </td>}
                         </tr>
                     ))}
                 </tbody>
@@ -434,7 +419,7 @@ const Products: React.FC = () => {
             </ReactModal>
             <ReactModal
                 isOpen={newDescriptionModalIsOpen}
-                onRequestClose={handleDescriptionModalClose}
+                onRequestClose={() => setNewDescriptionModalIsOpen(false)}
                 contentLabel="Description Modal"
                 style={{
                     overlay: { backgroundColor: 'rgba(0, 0, 0, 0.5)' },
@@ -468,7 +453,7 @@ const Products: React.FC = () => {
                     }}
                     style={{ width: '100%', height: '200px', marginBottom: '10px' }} // Dodajemy style dla textarea
                 />
-                <button onClick={handleDescriptionModalClose}>Ok</button>
+                <button onClick={() => setNewDescriptionModalIsOpen(false)}>Ok</button>
             </ReactModal>
         </div>
     );

@@ -245,14 +245,14 @@ const Categories: React.FC = () => {
                                                 <FontAwesomeIcon icon={faTimes} />
                                             </button>
                                         </div>
-                                    ) : (
+                                    ) :  (
                                         <div>
-                                            <button className="edit-button" onClick={() => handleEdit(category.name)}>
+                                            {canEditVal && <button className="edit-button" onClick={() => handleEdit(category.name)}>
                                                 <FontAwesomeIcon icon={faEdit} />
-                                            </button>
-                                            <button className="delete-button" onClick={() => handleDelete(category.name)}>
+                                            </button>}
+                                            {canDeleteVal && < button className="delete-button" onClick={() => handleDelete(category.name)}>
                                                 <FontAwesomeIcon icon={faTrash} />
-                                            </button>
+                                            </button>}
                                         </div>
                                     )}
                                 </td>
