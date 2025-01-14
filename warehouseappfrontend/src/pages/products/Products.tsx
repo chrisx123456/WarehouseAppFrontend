@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../ApiContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faCheck, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faCheck, faTimes, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select'; // Importujemy react-select
 import '../category/Categories.css';
 import ReactModal from 'react-modal'; // Importujemy react-modal
@@ -53,6 +53,7 @@ const Products: React.FC = () => {
     const [newDescription, setNewDescription] = useState<string>("");
 
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    //const [editDescription, setEditDescription] = useState<string>("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -176,7 +177,65 @@ const Products: React.FC = () => {
         setNewDescriptionModalIsOpen(false);
     };
 
+    const handleCancelEditProduct = () => {
+        setEditingProduct(null);
+    };
+    const handleEditProduct = (product: Product) => {
+        setEditingProduct({ ...product });
+        //setEditDescription(product.description || ""); // Inicjalizacja opisu w modalu edycji
+    };
+    const handleSaveEditProduct = async () => {
+        if (!editingProduct) return;
 
+        try {
+            const changes: { description?: string; price?: number } = {};
+
+            // Porównujemy wartości z edytowanego produktu z wartościami oryginalnymi
+            const originalProduct = products.find(p => p.ean === editingProduct.ean);
+            if (!originalProduct) return
+
+            if (editingProduct.description !== originalProduct.description) {
+                changes.description = editingProduct.description;
+            }
+
+            if (editingProduct.price !== originalProduct.price) {
+                changes.price = editingProduct.price;
+            }
+
+            // Jeśli nic się nie zmieniło, nie wysyłamy zapytania
+            if (Object.keys(changes).length === 0) {
+                setEditingProduct(null); // Zamykamy tryb edycji
+                return;
+            }
+
+            const response = await fetch(`${baseUrl}/Product/${editingProduct.ean}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+                body: JSON.stringify(changes), // Wysyłamy tylko zmienione pola
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(`Error while updating: ${response.status} - ${errorData.Message || 'No details'}`);
+            }
+
+            setProducts(
+                products.map((product) =>
+                    product.ean === editingProduct.ean ? { ...product, ...changes } : product // Aktualizujemy stan produktami z zmianami
+                )
+            );
+            setEditingProduct(null);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('Error occurred while updating product');
+            }
+        }
+    };
 
     if (loading) return <div>Loading...</div>;
 
@@ -290,25 +349,67 @@ const Products: React.FC = () => {
                         </tr>
                     )}
                     {products.map((product) => (
-                        <tr key={`${product.name}-${product.tradeName}`}>
+                        <tr key={product.ean}>
                             <td>{product.manufacturerName}</td>
                             <td>{product.name}</td>
                             <td>{product.tradeName}</td>
                             <td>{product.categoryName}</td>
                             <td>{getUnitTypeLabel(product.unitType)}</td>
-                            <td>{product.price}</td>
-                            <td>{product.ean}</td>
-                            <td style={{ cursor: 'pointer' }}> {/* Dodajemy styl kursora */}
-                                {product.description && product.description.length > 0 ? (
-                                    <span onClick={() => handleDescriptionViewClick(product.description as string)}>Click to expand</span>
+                            <td>
+                                {editingProduct?.ean === product.ean ? (
+                                    <input
+                                        type="number"
+                                        value={editingProduct?.price.toString() || ''}
+                                        onChange={(e) => {
+                                            const newValue = e.target.value;
+                                            setEditingProduct(prevProduct => {
+                                                if (!prevProduct) return null;
+                                                const parsedValue = newValue === '' ? '' : parseFloat(newValue);
+                                                return {
+                                                    ...prevProduct,
+                                                    price: typeof parsedValue === 'number' && !isNaN(parsedValue) ? parsedValue : 0,
+                                                };
+                                            });
+                                        }}
+                                    />
                                 ) : (
-                                    <span>No desc.</span>
+                                    product.price
+                                )}
+                            </td>
+                            <td>{product.ean}</td>
+                            <td style={{ cursor: 'pointer' }}>
+                                {editingProduct?.ean === product.ean ? (
+                                    <span onClick={handleDescriptionClick}>
+                                        {editingProduct.description && editingProduct.description.length > 0 ? "..." : "Dodaj opis"}
+                                    </span>
+                                ) : (
+                                    product.description && product.description.length > 0 ? (
+                                        <span onClick={() => handleDescriptionViewClick(product.description as string)}>...</span>
+                                    ) : (
+                                        <span>Brak opisu</span>
+                                    )
                                 )}
                             </td>
                             <td>
-                                <button className="delete-button" onClick={() => handleDeleteProduct(product.ean)}>
-                                    <FontAwesomeIcon icon={faTrash} />
-                                </button>
+                                {editingProduct?.ean === product.ean ? (
+                                    <div>
+                                        <button className="save-button" onClick={handleSaveEditProduct}>
+                                            <FontAwesomeIcon icon={faCheck} />
+                                        </button>
+                                        <button className="cancel-button" onClick={handleCancelEditProduct}>
+                                            <FontAwesomeIcon icon={faTimes} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <button className="edit-button" onClick={() => handleEditProduct(product)}>
+                                            <FontAwesomeIcon icon={faEdit} />
+                                        </button>
+                                        <button className="delete-button" onClick={() => handleDeleteProduct(product.ean)}>
+                                            <FontAwesomeIcon icon={faTrash} />
+                                        </button>
+                                    </div>
+                                )}
                             </td>
                         </tr>
                     ))}
@@ -366,8 +467,16 @@ const Products: React.FC = () => {
             >
                 <h2>Description</h2>
                 <textarea
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
+                    value={editingProduct ? editingProduct.description : newProduct ? newProduct.description : ""} // Operator ternarny
+                    onChange={(e) => {
+                        const newValue = e.target.value;
+                        if (editingProduct) {
+                            setEditingProduct(prev => prev ? { ...prev, description: newValue } : null);
+                        } else {
+                            setNewDescription(e.target.value);
+                        }
+
+                    }}
                     style={{ width: '100%', height: '200px', marginBottom: '10px' }} // Dodajemy style dla textarea
                 />
                 <button onClick={() => handleDescriptionModalSave(newDescription)}>Save</button>
