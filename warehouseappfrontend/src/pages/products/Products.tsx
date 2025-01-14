@@ -1,9 +1,10 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../ApiContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faCheck, faTimes, faTrash } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select'; // Importujemy react-select
 import '../category/Categories.css';
+import ReactModal from 'react-modal'; // Importujemy react-modal
 
 interface Product {
     manufacturerName: string;
@@ -44,6 +45,15 @@ const Products: React.FC = () => {
     const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]); // Stan dla producentów
     const [categories, setCategories] = useState<Category[]>([]);       // Stan dla kategorii
 
+    const [descriptionViewModalIsOpen, setDescriptionViewModalIsOpen] = useState(false);
+    const [selectedDescriptionView, setSelectedDescriptionView] = useState<string | null>(null);
+
+
+    const [newDescriptionModalIsOpen, setNewDescriptionModalIsOpen] = useState(false);
+    const [newDescription, setNewDescription] = useState<string>("");
+
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -82,7 +92,29 @@ const Products: React.FC = () => {
 
     const handleAddProduct = () => setNewProduct({ manufacturerName: "", name: '', tradeName: "", categoryName: "", unitType: 0, price: 0, ean: "", description: "" });
 
+    const handleDeleteProduct = async (ean: string) => {
+        try {
+            const response = await fetch(`${baseUrl}/Product/${ean}`, { // Używamy EAN w URL
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+            });
 
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(`Error while deleting: ${response.status} - ${errorData.Message || 'No details'}`);
+            }
+
+            setProducts(products.filter((product) => product.ean !== ean)); // Filtrujemy po EAN
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('Error occured while deleting product');
+            }
+        }
+    };
 
     const handleSaveNewProduct = async () => {
         if (!newProduct) {
@@ -117,6 +149,33 @@ const Products: React.FC = () => {
 
     const manufacturerOptions = manufacturers.map(m => ({ value: m.name, label: m.name }));
     const categoryOptions = categories.map(c => ({ value: c.name, label: c.name }));
+
+    const handleDescriptionViewClick = (description: string) => {
+        setSelectedDescriptionView(description);
+        setDescriptionViewModalIsOpen(true);
+    };
+
+    const closeDescriptionViewModal = () => {
+        setDescriptionViewModalIsOpen(false);
+        setSelectedDescriptionView(null);
+    };
+    // Above: view, Bellow: new
+    const handleDescriptionClick = () => {
+        setNewDescription(newProduct?.description || ""); // Ustawiamy aktualny opis w modalu
+        setNewDescriptionModalIsOpen(true);
+    };
+
+    const handleDescriptionModalSave = (newDescription: string) => {
+        if (newProduct) {
+            setNewProduct({ ...newProduct, description: newDescription });
+        }
+        setNewDescriptionModalIsOpen(false);
+    };
+
+    const handleDescriptionModalClose = () => {
+        setNewDescriptionModalIsOpen(false);
+    };
+
 
 
     if (loading) return <div>Loading...</div>;
@@ -219,7 +278,11 @@ const Products: React.FC = () => {
                             </td>
                             <td><input type="number" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} /></td>
                             <td><input type="text" value={newProduct.ean} onChange={(e) => setNewProduct({ ...newProduct, ean: e.target.value })} /></td>
-                            <td><input type="text" value={newProduct.description || ""} onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })} /></td>
+                            <td style={{ cursor: 'pointer' }}>
+                                <span onClick={handleDescriptionClick}>
+                                    {newProduct.description && newProduct.description.length > 0 ? "..." : "Dodaj opis"}
+                                </span>
+                            </td>
                             <td>
                                 <button className="save-button" onClick={handleSaveNewProduct}><FontAwesomeIcon icon={faCheck} /></button>
                                 <button className="cancel-button" onClick={handleCancelNewProduct}><FontAwesomeIcon icon={faTimes} /></button>
@@ -235,11 +298,81 @@ const Products: React.FC = () => {
                             <td>{getUnitTypeLabel(product.unitType)}</td>
                             <td>{product.price}</td>
                             <td>{product.ean}</td>
-                            <td>{product.description}</td>
+                            <td style={{ cursor: 'pointer' }}> {/* Dodajemy styl kursora */}
+                                {product.description && product.description.length > 0 ? (
+                                    <span onClick={() => handleDescriptionViewClick(product.description as string)}>Click to expand</span>
+                                ) : (
+                                    <span>No desc.</span>
+                                )}
+                            </td>
+                            <td>
+                                <button className="delete-button" onClick={() => handleDeleteProduct(product.ean)}>
+                                    <FontAwesomeIcon icon={faTrash} />
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+            <ReactModal
+                isOpen={descriptionViewModalIsOpen}
+                onRequestClose={closeDescriptionViewModal}
+                contentLabel="Description Modal"
+                style={{
+                    overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)' // Półprzezroczyste tło
+                    },
+                    content: {
+                        textAlign: 'center',
+                        justifyContent: 'center',
+                        top: '50%',
+                        left: '50%',
+                        right: 'auto',
+                        bottom: 'auto',
+                        marginRight: '-50%',
+                        transform: 'translate(-50%, -50%)',
+                        padding: '20px',
+                        paddingTop: '5px',
+                        borderRadius: '8px',
+                        maxWidth: '500px', // Ograniczenie szerokości
+                    }
+                }}
+            >
+                <h2>Description</h2>
+                <p>{selectedDescriptionView}</p>
+                <button onClick={closeDescriptionViewModal}>Close</button>
+            </ReactModal>
+            <ReactModal
+                isOpen={newDescriptionModalIsOpen}
+                onRequestClose={handleDescriptionModalClose}
+                contentLabel="Description Modal"
+                style={{
+                    overlay: { backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+                    content: {
+                        textAlign: 'center',
+                        justifyContent: 'center',
+                        top: '50%',
+                        left: '50%',
+                        right: 'auto',
+                        bottom: 'auto',
+                        marginRight: '-50%',
+                        transform: 'translate(-50%, -50%)',
+                        padding: '20px',
+                        paddingTop: '5px',
+                        borderRadius: '8px',
+                        maxWidth: '500px', // Ograniczenie szerokości
+                    }
+                }}
+            >
+                <h2>Description</h2>
+                <textarea
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    style={{ width: '100%', height: '200px', marginBottom: '10px' }} // Dodajemy style dla textarea
+                />
+                <button onClick={() => handleDescriptionModalSave(newDescription)}>Save</button>
+                <button onClick={handleDescriptionModalClose}>Cancel</button>
+            </ReactModal>
         </div>
     );
 };
