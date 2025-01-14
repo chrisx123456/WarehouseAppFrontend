@@ -46,14 +46,11 @@ const Products: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);       // Stan dla kategorii
 
     const [descriptionViewModalIsOpen, setDescriptionViewModalIsOpen] = useState(false);
-    const [selectedDescriptionView, setSelectedDescriptionView] = useState<string | null>(null);
-
-
     const [newDescriptionModalIsOpen, setNewDescriptionModalIsOpen] = useState(false);
-    const [newDescription, setNewDescription] = useState<string>("");
 
+    const [selectedDescriptionView, setSelectedDescriptionView] = useState<string | null>(null);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-    //const [editDescription, setEditDescription] = useState<string>("");
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -162,15 +159,7 @@ const Products: React.FC = () => {
     };
     // Above: view, Bellow: new
     const handleDescriptionClick = () => {
-        setNewDescription(newProduct?.description || ""); // Ustawiamy aktualny opis w modalu
         setNewDescriptionModalIsOpen(true);
-    };
-
-    const handleDescriptionModalSave = (newDescription: string) => {
-        if (newProduct) {
-            setNewProduct({ ...newProduct, description: newDescription });
-        }
-        setNewDescriptionModalIsOpen(false);
     };
 
     const handleDescriptionModalClose = () => {
@@ -182,8 +171,8 @@ const Products: React.FC = () => {
     };
     const handleEditProduct = (product: Product) => {
         setEditingProduct({ ...product });
-        //setEditDescription(product.description || ""); // Inicjalizacja opisu w modalu edycji
     };
+
     const handleSaveEditProduct = async () => {
         if (!editingProduct) return;
 
@@ -473,14 +462,13 @@ const Products: React.FC = () => {
                         if (editingProduct) {
                             setEditingProduct(prev => prev ? { ...prev, description: newValue } : null);
                         } else {
-                            setNewDescription(e.target.value);
+                            setNewProduct(prev => prev ? { ...prev, description: newValue } : null);
                         }
 
                     }}
                     style={{ width: '100%', height: '200px', marginBottom: '10px' }} // Dodajemy style dla textarea
                 />
-                <button onClick={() => handleDescriptionModalSave(newDescription)}>Save</button>
-                <button onClick={handleDescriptionModalClose}>Cancel</button>
+                <button onClick={handleDescriptionModalClose}>Ok</button>
             </ReactModal>
         </div>
     );
