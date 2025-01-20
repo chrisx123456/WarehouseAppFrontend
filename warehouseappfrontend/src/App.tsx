@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import Categories from './pages/category/Categories'
 import Manufacturers from './pages/manufacturers/Manufacturers'
 import Products from './pages/products/Products'
+import Stock from './pages/Stock/Stock'
 import { User } from './types/User'; // Upewnij się, że masz zdefiniowany typ User
 import './App.css';
 import { useApi } from './ApiContext';
@@ -169,6 +170,7 @@ const App: React.FC = () => {
                         <Route path="/categories" element={<Categories />} />
                         <Route path="/manufacturers" element={<Manufacturers />} />
                         <Route path="/products" element={<Products />} />
+                        <Route path="/stock" element={<Stock />} />
                     </Routes>
                 </Content>
             </div>

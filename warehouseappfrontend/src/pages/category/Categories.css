@@ -75,3 +75,40 @@ select {
     cursor: default;
     background-color: black;
 }
+.search-bar {
+    display: flex; /* Ustawia elementy w jednym wierszu */
+    align-items: center; /* Centruje elementy w pionie */
+    margin-bottom: 20px; /* Odstęp od tabeli */
+    gap: 10px; /* Odstęp między elementami wewnątrz search-bar */
+}
+
+    .search-bar input[type="text"],
+    .search-bar select {
+        flex-grow: 1; /* Input i select zajmują dostępne miejsce */
+        padding: 8px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+        border-radius: 4px;
+    }
+
+    .search-bar button {
+        padding: 8px 16px;
+        background-color: #007bff; /* Niebieski */
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+        .search-bar button:hover {
+            background-color: #0056b3; /* Ciemniejszy niebieski na hover */
+        }
+
+/* Style dla komunikatów o błędach */
+.error-message {
+    color: red;
+    margin-bottom: 10px;
+    border: 1px solid red;
+    padding: 5px;
+    border-radius: 4px;
+}

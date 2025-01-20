@@ -103,12 +103,10 @@ const Products: React.FC = () => {
                     'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
                 },
             });
-
             if (!response.ok) {
                 const errorData = await response.json() as ErrorResponse;
                 throw new Error(`Error while deleting: ${response.status} - ${errorData.Message || 'No details'}`);
             }
-
             setProducts(products.filter((product) => product.ean !== ean)); 
         } catch (err: unknown) {
             if (err instanceof Error) {
@@ -118,13 +116,11 @@ const Products: React.FC = () => {
             }
         }
     };
-
     const handleSaveNewProduct = async () => {
         if (!newProduct) {
             setError("Enter product data.");
             return;
         }
-
         try {
             const response = await fetch(`${baseUrl}/Product`, {
                 method: 'POST',
@@ -134,56 +130,42 @@ const Products: React.FC = () => {
                 },
                 body: JSON.stringify(newProduct),
             });
-
             if (!response.ok) {
                 const errorData = await response.json() as ErrorResponse;
                 throw new Error(`Error creating product: ${response.status} - ${errorData.Message || 'No details'}`);
             }
-
             setProducts([...products, newProduct]);
             setNewProduct(null); // Resetujemy formularz
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Error creating product.");
         }
     };
-
     const manufacturerOptions = manufacturers.map(m => ({ value: m.name, label: m.name }));
     const categoryOptions = categories.map(c => ({ value: c.name, label: c.name }));
-
     const handleDescriptionViewClick = (description: string) => {
         setSelectedDescriptionView(description);
         setDescriptionViewModalIsOpen(true);
     };
-
     const closeDescriptionViewModal = () => {
         setDescriptionViewModalIsOpen(false);
         setSelectedDescriptionView(null);
     };
-
     const handleSaveEditProduct = async () => {
         if (!editingProduct) return;
-
         try {
             const changes: { description?: string; price?: number } = {};
-
-            // Porównujemy wartości z edytowanego produktu z wartościami oryginalnymi
             const originalProduct = products.find(p => p.ean === editingProduct.ean);
             if (!originalProduct) return
-
             if (editingProduct.description !== originalProduct.description) {
                 changes.description = editingProduct.description;
             }
-
             if (editingProduct.price !== originalProduct.price) {
                 changes.price = editingProduct.price;
             }
-
-            // Jeśli nic się nie zmieniło, nie wysyłamy zapytania
             if (Object.keys(changes).length === 0) {
                 setEditingProduct(null); // Zamykamy tryb edycji
                 return;
             }
-
             const response = await fetch(`${baseUrl}/Product/${editingProduct.ean}`, {
                 method: 'PATCH',
                 headers: {
@@ -192,12 +174,10 @@ const Products: React.FC = () => {
                 },
                 body: JSON.stringify(changes), // Wysyłamy tylko zmienione pola
             });
-
             if (!response.ok) {
                 const errorData = await response.json() as ErrorResponse;
                 throw new Error(`Error while updating: ${response.status} - ${errorData.Message || 'No details'}`);
             }
-
             setProducts(
                 products.map((product) =>
                     product.ean === editingProduct.ean ? { ...product, ...changes } : product // Aktualizujemy stan produktami z zmianami
