@@ -1,8 +1,9 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../../ApiContext';
-import '../category/Categories.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faTimes, faTrash, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons';
+import '../category/Categories.css';
+
 interface User {
     firstName: string;
     lastName: string;
@@ -10,7 +11,14 @@ interface User {
     roleName: string;
     password?: string
 }
-
+interface UserUpdateData {
+    oldEmail: string;
+    email?: string;
+    password?: string;
+    roleName?: string;
+    firstName?: string;
+    lastName?: string;
+}
 interface ErrorResponse {
     Message?: string;
 }
@@ -23,6 +31,7 @@ const Users: React.FC = () => {
     const [newUser, setNewUser] = useState<User | null>(null); // Stan dla nowego użytkownika
     const [isAddingNewUser, setIsAddingNewUser] = useState(false); // Stan do kontrolowania widoczności wiersza dodawania
     const availableRoles = ['Admin', 'Manager', 'User']; // Define available roles
+    const [editingUser, setEditingUser] = useState<UserUpdateData | null>(null);
 
 
     const fetchUsers = useCallback(async () => {
@@ -107,6 +116,108 @@ const Users: React.FC = () => {
         setIsAddingNewUser(false);
         setNewUser(null); // Resetuj formularz
     };
+    const handleDeleteUser = async (email: string) => {
+        try {
+            const response = await fetch(`${baseUrl}/User/${email}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` },
+            });
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(`Error deleting user: ${response.status} - ${errorData.Message || 'No details'}`);
+            }
+            setUsers(users.filter((user) => user.email !== email));
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Wystąpił nieznany błąd.");
+            }
+        }
+    };
+    const handleEditUser = (user: User) => {
+        setEditingUser({
+            oldEmail: user.email,
+            email: user.email,
+            roleName: user.roleName,
+            firstName: user.firstName,
+            lastName: user.lastName
+        });
+    };
+    const handleCancelEditUser = () => {
+        setEditingUser(null);
+    };
+    const handleSaveEditUser = async () => {
+        if (!editingUser) return;
+
+        const updatedFields: UserUpdateData = { oldEmail: editingUser.oldEmail };
+
+        const originalUser = users.find(u => u.email === editingUser.oldEmail);
+        if (!originalUser) {
+            setError("Nie znaleziono oryginalnego użytkownika.");
+            return;
+        }
+
+        if (editingUser.email !== originalUser.email) {
+            updatedFields.email = editingUser.email;
+        }
+
+        if (editingUser.roleName !== originalUser.roleName) {
+            updatedFields.roleName = editingUser.roleName;
+        }
+
+        if (editingUser.password) { // Sprawdzamy, czy Password ma jakąkolwiek wartość
+            updatedFields.password = editingUser.password;
+        }
+
+        if (editingUser.firstName !== originalUser.firstName) {
+            updatedFields.firstName = editingUser.firstName;
+        }
+
+        if (editingUser.lastName !== originalUser.lastName) {
+            updatedFields.lastName = editingUser.lastName;
+        }
+
+        try {
+            const response = await fetch(`${baseUrl}/Account`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+                body: JSON.stringify(updatedFields), // Wysyłamy tylko zmienione pola
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(`Error updating user: ${response.status} - ${errorData.Message || 'No details'}`);
+            }
+            //users.map(user => {
+            //    console.log(user.email.concat(" ").concat(editingUser.oldEmail));
+            //    console.log(user.email === editingUser.oldEmail)
+            //}
+            //);
+
+            setUsers(prevUsers => prevUsers.map(user =>
+                (user.email === editingUser.oldEmail)
+                    ? {
+                        ...user,
+                        firstName: editingUser.firstName ?? user.firstName,
+                        lastName: editingUser.lastName ?? user.lastName,
+                        email: editingUser.email ?? user.email,
+                        roleName: editingUser.roleName ?? user.roleName,
+                    }
+                    : user
+            ));
+            setEditingUser(null);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Wystąpił nieznany błąd.");
+            }
+        }
+    };
 
     if (loading) {
         return <div>Loading...</div>;
@@ -154,10 +265,37 @@ const Users: React.FC = () => {
                         )}
                         {users.map((user) => (
                             <tr key={user.email}>
-                                <td>{user.firstName}</td>
-                                <td>{user.lastName}</td>
-                                <td>{user.email}</td>
-                                <td>{user.roleName}</td>
+                                <td>{editingUser?.oldEmail === user.email ? <input type="text" value={editingUser.firstName ?? user.firstName} onChange={(e) => setEditingUser(prev => prev ? { ...prev, firstName: e.target.value } : null)} /> : user.firstName}</td>
+                                <td>{editingUser?.oldEmail === user.email ? <input type="text" value={editingUser.lastName ?? user.lastName} onChange={(e) => setEditingUser(prev => prev ? { ...prev, lastName: e.target.value } : null)} /> : user.lastName}</td>
+                                <td>{editingUser?.oldEmail === user.email ? <input type="email" value={editingUser.email ?? user.email} onChange={(e) => setEditingUser(prev => prev ? { ...prev, email: e.target.value } : null)} /> : user.email}</td>
+                                <td>
+                                    {editingUser?.oldEmail === user.email ? (
+                                        <select
+                                            value={editingUser.roleName}
+                                            
+                                            onChange={(e) => setEditingUser(prev => prev ? { ...prev, roleName: e.target.value } : null)}>
+                                            {availableRoles.map((role) => (
+                                                <option key={role} value={role}>{role}</option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        user.roleName
+                                    )}
+                                </td>
+                                <td>
+                                    {editingUser?.oldEmail === user.email ? (
+                                        <div>
+                                            <input type="password" placeholder="Hasło" onChange={(e) => setEditingUser(prev => prev ? { ...prev, password: e.target.value } : null)} />
+                                            <button className="save-button" onClick={handleSaveEditUser}><FontAwesomeIcon icon={faCheck} /></button>
+                                            <button className="cancel-button" onClick={handleCancelEditUser}><FontAwesomeIcon icon={faTimes} /></button>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <button className="edit-button" onClick={() => handleEditUser(user)}><FontAwesomeIcon icon={faEdit}/></button>
+                                            <button className="delete-button" onClick={() => handleDeleteUser(user.email)}><FontAwesomeIcon icon={faTrash} /></button>
+                                        </div>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
