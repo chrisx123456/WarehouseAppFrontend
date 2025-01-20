@@ -9,10 +9,6 @@ export interface NavigationItemData {
 
 export const navigationData: NavigationItemData[] = [
     {
-        label: "Strona główna",
-        path: "/",
-    },
-    {
         label: "Categories",
         children: [
             {
@@ -39,21 +35,21 @@ export const navigationData: NavigationItemData[] = [
         allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin],
     },
 
-    {
-        label: "Użytkownicy",
-        children: [
-            {
-                label: "Lista użytkowników",
-                path: "/users",
-                allowedRoles: [UserRole.Manager, UserRole.Admin],
-            },
-            {
-                label: "Dodaj użytkownika",
-                path: "/users/add",
-                allowedRoles: [UserRole.Admin],
-            },
-        ],
-    },
+    //{
+    //    label: "Użytkownicy",
+    //    children: [
+    //        {
+    //            label: "Lista użytkowników",
+    //            path: "/users",
+    //            allowedRoles: [UserRole.Manager, UserRole.Admin],
+    //        },
+    //        {
+    //            label: "Dodaj użytkownika",
+    //            path: "/users/add",
+    //            allowedRoles: [UserRole.Admin],
+    //        },
+    //    ],
+    //},
     {
         label: "Produkty",
         children: [
@@ -70,7 +66,7 @@ export const navigationData: NavigationItemData[] = [
         ]
     },
     {
-        label: "Panel Admina",
+        label: "Admin Panel",
         path: "/admin",
         allowedRoles: [UserRole.Admin]
     }
