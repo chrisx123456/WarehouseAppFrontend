@@ -69,5 +69,10 @@ export const navigationData: NavigationItemData[] = [
         label: "Admin Panel",
         path: "/admin",
         allowedRoles: [UserRole.Admin]
+    },
+    {
+        label: "User Panel",
+        path: "/user",
+        allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin]
     }
 ];

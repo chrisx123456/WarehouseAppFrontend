@@ -8,6 +8,7 @@ import Manufacturers from './pages/manufacturers/Manufacturers'
 import Products from './pages/products/Products'
 import Stock from './pages/stock/Stock'
 import AdminPage from './pages/account/AdminPage'
+import UserPage from './pages/account/UserPage'
 import { User } from './types/User'; // Upewnij się, że masz zdefiniowany typ User
 import './App.css';
 import { useApi } from './ApiContext';
@@ -173,6 +174,7 @@ const App: React.FC = () => {
                         <Route path="/products" element={<Products />} />
                         <Route path="/stock" element={<Stock />} />
                         <Route path="/admin" element={<AdminPage />} />
+                        <Route path="/user" element={<UserPage />} />
                     </Routes>
                 </Content>
             </div>

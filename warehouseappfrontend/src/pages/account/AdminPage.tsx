@@ -118,7 +118,7 @@ const Users: React.FC = () => {
     };
     const handleDeleteUser = async (email: string) => {
         try {
-            const response = await fetch(`${baseUrl}/User/${email}`, {
+            const response = await fetch(`${baseUrl}/Account/delete/${email}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` },
             });

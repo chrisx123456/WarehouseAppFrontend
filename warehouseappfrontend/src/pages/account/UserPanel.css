@@ -1,0 +1,29 @@
+.user-details {
+    border: 1px solid #ccc;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+.user-info {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.info-item {
+    width: 50%;
+    margin-bottom: 10px;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+.label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+@media (max-width: 500px) {
+    .info-item {
+        width: 100%;
+    }
+}
