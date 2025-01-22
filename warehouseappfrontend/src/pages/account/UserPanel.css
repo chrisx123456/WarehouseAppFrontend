@@ -1,4 +1,4 @@
-.user-details {
+﻿.user-details {
     border: 1px solid #ccc;
     padding: 20px;
     margin: 20px auto;
@@ -8,6 +8,7 @@
 .user-info {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .info-item {
@@ -27,3 +28,34 @@
         width: 100%;
     }
 }
+.buttons-container {
+    display: flex;
+    justify-content: center; /* Wyśrodkowanie w poziomie */
+    margin-top: 20px; /* Dodatkowy margines od góry */
+    flex-direction: column; /* Ustawienie przycisków w kolumnie */
+    align-items: center; /* Wyśrodkowanie w poziomie wewnątrz kolumny */
+}
+
+    .buttons-container button {
+        margin: 5px; /* Dodajemy marginesy do przycisków */
+        padding: 8px 16px; /* Poprawiamy padding przycisków dla lepszego wyglądu */
+    }
+
+.change-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+}
+
+    .change-form input {
+        margin: 5px;
+        padding: 8px;
+        box-sizing: border-box;
+        width: 250px; /* Ustalona szerokość inputów */
+    }
+
+    .change-form button {
+        margin: 5px;
+        padding: 8px 16px;
+    }

@@ -1,7 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../ApiContext';
-import '../category/Categories.css';
-
+import '../GeneralStyles.css';
 interface Stock {
     name: string;
     series: string;

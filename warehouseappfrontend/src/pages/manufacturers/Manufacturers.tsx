@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../ApiContext';
-import '../category/Categories.css'; //Może potem do dodac jaki uniwersalny styl do tych prostyszych stron
+import '../GeneralStyles.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faCheck, faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
 

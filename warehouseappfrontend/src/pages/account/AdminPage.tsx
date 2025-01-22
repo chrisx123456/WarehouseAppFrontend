@@ -2,7 +2,7 @@
 import { useApi } from '../../ApiContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes, faTrash, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons';
-import '../category/Categories.css';
+import '../GeneralStyles.css';
 
 interface User {
     firstName: string;

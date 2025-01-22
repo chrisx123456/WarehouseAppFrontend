@@ -26,7 +26,14 @@ th {
     font-weight: bold;
 }
 
-.edit-button, .delete-button, .save-button, .cancel-button {
+.edit-button, .delete-button, .save-button, .cancel-button{
+    margin: 0 5px; /* Odstępy między przyciskami */
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+}
+
+button {
     margin: 0 5px; /* Odstępy między przyciskami */
     padding: 5px 10px;
     border: none;
@@ -54,6 +61,8 @@ th {
 
 input[type="text"],
 input[type="number"],
+input[type="email"],
+input[type="password"],
 select {
     width: 100%;
     box-sizing: border-box; /* Kluczowe! */

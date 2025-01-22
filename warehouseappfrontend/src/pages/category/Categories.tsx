@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../ApiContext';
-import './Categories.css';
+import '../GeneralStyles.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faCheck, faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
 

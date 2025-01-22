@@ -3,9 +3,8 @@ import { useApi } from '../../ApiContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faCheck, faTimes, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select'; // Importujemy react-select
-import '../category/Categories.css';
 import ReactModal from 'react-modal'; // Importujemy react-modal
-
+import '../GeneralStyles.css';
 interface Product {
     manufacturerName: string;
     name: string;
