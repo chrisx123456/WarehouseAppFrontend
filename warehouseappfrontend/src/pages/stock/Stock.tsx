@@ -79,7 +79,7 @@ const Products: React.FC = () => {
             <h1>Products</h1>
             <div className="search-bar">
                 <input
-                    type="text"
+                    type={searchBy === 'expirationDate' ? 'date' : 'text'}
                     placeholder="Search"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -87,7 +87,7 @@ const Products: React.FC = () => {
                 <select value={searchBy} onChange={(e) => setSearchBy(e.target.value as "ean" | "series" | "expirationDate")}>
                     <option value="ean">Ean</option>
                     <option value="series">Series</option>
-                    <option value="date">Expiration Date</option>
+                    <option value="expirationDate">Expiration Date</option>
                 </select>
                 <button onClick={handleSearch}>Search</button>
             </div>

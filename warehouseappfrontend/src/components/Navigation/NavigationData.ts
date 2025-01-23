@@ -10,14 +10,13 @@ export interface NavigationItemData {
 export const navigationData: NavigationItemData[] = [
     {
         label: "Categories",
-        children: [
-            {
-                label: "All categories",
-                path: "/categories",
-                allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin],
-            },
-        ],
-
+        path: "/categories",
+        allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin],
+    },
+    {
+        label: "Manufacturers",
+        path: "/manufacturers",
+        allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin],
     },
     {
         label: "Products",
@@ -28,42 +27,6 @@ export const navigationData: NavigationItemData[] = [
         label: "In stock",
         path: "/stock",
         allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin],
-    },
-    {
-        label: "Manufacturers",
-        path: "/manufacturers",
-        allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin],
-    },
-
-    //{
-    //    label: "Użytkownicy",
-    //    children: [
-    //        {
-    //            label: "Lista użytkowników",
-    //            path: "/users",
-    //            allowedRoles: [UserRole.Manager, UserRole.Admin],
-    //        },
-    //        {
-    //            label: "Dodaj użytkownika",
-    //            path: "/users/add",
-    //            allowedRoles: [UserRole.Admin],
-    //        },
-    //    ],
-    //},
-    {
-        label: "Produkty",
-        children: [
-            {
-                label: "Lista produktów",
-                path: "/products",
-                allowedRoles: [UserRole.User, UserRole.Manager, UserRole.Admin]
-            },
-            {
-                label: "Dodaj produkt",
-                path: "/products/add",
-                allowedRoles: [UserRole.Manager, UserRole.Admin]
-            }
-        ]
     },
     {
         label: "Admin Panel",

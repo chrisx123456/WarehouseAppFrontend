@@ -284,10 +284,12 @@ const Users: React.FC = () => {
                                 </td>
                                 <td>
                                     {editingUser?.oldEmail === user.email ? (
-                                        <div>
+                                        <div className="adminPanelPasswordDiv">
                                             <input type="password" placeholder="Hasło" onChange={(e) => setEditingUser(prev => prev ? { ...prev, password: e.target.value } : null)} />
-                                            <button className="save-button" onClick={handleSaveEditUser}><FontAwesomeIcon icon={faCheck} /></button>
-                                            <button className="cancel-button" onClick={handleCancelEditUser}><FontAwesomeIcon icon={faTimes} /></button>
+                                            <div className="SCbuttons-container">
+                                                <button className="save-button" onClick={handleSaveEditUser}><FontAwesomeIcon icon={faCheck} /></button>
+                                                <button className="cancel-button" onClick={handleCancelEditUser}><FontAwesomeIcon icon={faTimes} /></button>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div>

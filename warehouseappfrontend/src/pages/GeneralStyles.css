@@ -63,6 +63,7 @@ input[type="text"],
 input[type="number"],
 input[type="email"],
 input[type="password"],
+input[type="date"],
 select {
     width: 100%;
     box-sizing: border-box; /* Kluczowe! */
@@ -120,4 +121,10 @@ select {
     border: 1px solid red;
     padding: 5px;
     border-radius: 4px;
+}
+.SCbuttons-container{
+    margin-left: 10px;
+}
+.adminPanelPasswordDiv{
+    display: flex;
 }

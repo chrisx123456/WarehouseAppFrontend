@@ -15,6 +15,7 @@ import { useApi } from './ApiContext';
 
 interface LoginProps {
     onLogin: (user: User) => void;
+    initialError?: string | null;
 }
 interface ErrorResponse {
     Message?: string //Wyjątek że duża litera bo używam JsonSerializer ręcznie
@@ -24,10 +25,10 @@ interface TokenResponse {
 }
 
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC<LoginProps> = ({ onLogin, initialError }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(initialError || null);
     const { baseUrl } = useApi();
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -106,6 +107,7 @@ const App: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const { baseUrl } = useApi();
     const navigate = useNavigate();
+    const [loginError, setLoginError] = useState<string | null>(null); // Dodajemy stan dla błędu logowania
 
     useEffect(() => {
         const fetchRole = async () => {
@@ -124,10 +126,13 @@ const App: React.FC = () => {
                         setUser({ role: roleData.role });
                         setIsLoggedIn(true); // Ustawiamy isLoggedIn na true, gdy rola zostanie pobrana
                     } else {
+                        const errorMsg = (await roleResponse.json() as ErrorResponse).Message;
+                        setLoginError(errorMsg || null);
                         localStorage.removeItem('jwtToken');
                         setIsLoggedIn(false);
                         setUser(null);
                         navigate("/login"); // Przekierowanie do logowania, gdy token jest nieprawidłowy
+                        return;
                     }
                 } catch (error) {
                     console.error("Error fetching user role:", error);
@@ -158,7 +163,7 @@ const App: React.FC = () => {
     };
 
     if (!isLoggedIn) {
-        return <Login onLogin={handleLogin} />;
+        return <Login onLogin={handleLogin} initialError={loginError} />;
     }
 
     return (
