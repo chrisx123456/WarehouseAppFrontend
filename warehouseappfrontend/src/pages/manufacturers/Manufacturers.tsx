@@ -166,7 +166,7 @@ const Manufacturers: React.FC = () => {
             {error && <div className="error-message">{error}</div>}
             <h1>Manufacturers</h1>
             {canAddVal && (
-                <button className="add-manufacturer-button" onClick={handleAddManufacturer}>
+                <button className="add-button" onClick={handleAddManufacturer}>
                     <FontAwesomeIcon icon={faPlus} /> Add Manufacturer
                 </button>
             )}

@@ -4,17 +4,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faCheck, faTimes, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import Select from 'react-select'; // Importujemy react-select
 import ReactModal from 'react-modal'; // Importujemy react-modal
+import { unitTypeMap } from '../../types/Units'
 import '../GeneralStyles.css';
-interface Product {
-    manufacturerName: string;
-    name: string;
-    tradeName: string;
-    categoryName: string;
-    unitType: number;
-    price: number;
-    ean: string;
-    description?: string;
-}
+import { Product } from '../../types/Product'
 interface Manufacturer {
     name: string;
 }
@@ -25,15 +17,15 @@ interface ErrorResponse {
     Message?: string;
 }
 
-interface UnitTypeMap {
-    [key: number]: string;
-}
+//interface UnitTypeMap {
+//    [key: number]: string;
+//}
 
-const unitTypeMap: UnitTypeMap = {
-    0: "Qt",
-    1: "Kg",
-    2: "L",
-};
+//const unitTypeMap: UnitTypeMap = {
+//    0: "Qt",
+//    1: "Kg",
+//    2: "L",
+//};
 
 const Products: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -199,7 +191,7 @@ const Products: React.FC = () => {
             {error && <div className="error-message">{error}</div>}
             <h1>Products</h1>
             {canAddVal && (
-                <button className="add-manufacturer-button" onClick={handleAddProduct}>
+                <button className="add-button" onClick={handleAddProduct}>
                     <FontAwesomeIcon icon={faPlus} /> Dodaj Produkt
                 </button>
             )}

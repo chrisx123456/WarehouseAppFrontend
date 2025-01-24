@@ -230,7 +230,7 @@ const Users: React.FC = () => {
             {error && <div className="error-message">{error}</div>}
 
             {!loading && users.length === 0 && !error && <div>Brak użytkowników.</div>}
-            <button onClick={handleAddUserClick}><FontAwesomeIcon icon={faPlus} /> Dodaj użytkownika</button>
+            <button className="add-button" onClick={handleAddUserClick}><FontAwesomeIcon icon={faPlus} /> Dodaj użytkownika</button>
 
             {!loading && users.length > 0 && (
                 <table>

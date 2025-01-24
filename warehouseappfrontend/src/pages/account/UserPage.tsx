@@ -13,9 +13,7 @@ interface User {
 interface ErrorResponse {
     message: string;
 }
-interface INewPassword {
-    password: string;
-}
+
 
 const UserPanel: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);

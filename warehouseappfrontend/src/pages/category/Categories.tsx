@@ -178,7 +178,7 @@ const Categories: React.FC = () => {
         <div className="categories-container">
             <h1>Categories</h1>
             {error && <div className="error-message">{error}</div>} {/* Display errors above content */}
-            {canAddVal && <button className="add-category-button" onClick={handleAddCategory}> <FontAwesomeIcon icon={faPlus} /> Dodaj kategorię</button>}
+            {canAddVal && <button className="add-button" onClick={handleAddCategory}> <FontAwesomeIcon icon={faPlus} /> Dodaj kategorię</button>}
             <table>
                 <thead>
                     <tr>
