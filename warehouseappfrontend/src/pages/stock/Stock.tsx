@@ -4,7 +4,7 @@ import { useApi } from '../../ApiContext';
 import { unitTypeMap } from '../../types/Units';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes } from '@fortawesome/free-solid-svg-icons';
-import Select, { GroupBase } from 'react-select'; // Importujemy react-select
+import Select from 'react-select'; // Importujemy react-select
 import '../GeneralStyles.css';
 import './StockStyles.css';
 import { Product } from '../../types/Product'
@@ -35,6 +35,13 @@ interface NewStock {
 interface ErrorResponse {
     Message?: string;
 }
+interface GroupedStockItem {
+    tradeName: string;
+    ean: string;
+    totalQuantity: number;
+    children: Stock[];
+    unitType: number;
+}
 
 const Instock: React.FC = () => {
     const [stock, setStock] = useState<Stock[]>([]);
@@ -45,6 +52,8 @@ const Instock: React.FC = () => {
     const [searchBy, setSearchBy] = useState<"ean" | "series" | "expirationDate">('ean');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isNewStockHaveExpDate, setNewStockHaveExpDate] = useState(false);
+    // Zmień deklarację stanu na:
+    const [expandedEans, setExpandedEans] = useState<Set<string>>(new Set());
 
     const [newStock, setNewStock] = useState<NewStock>({
         ean: '',
@@ -77,7 +86,7 @@ const Instock: React.FC = () => {
                 }
             }
             const [productsResponse, stockResponse] = await Promise.all([
-                fetch(`${baseUrl}/Product`, { method: 'GET', headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,},}),
+                fetch(`${baseUrl}/Product`, { method: 'GET', headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}`, }, }),
                 fetch(url, { method: 'GET', headers: { 'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`, }, })
             ]);
 
@@ -121,7 +130,7 @@ const Instock: React.FC = () => {
     const handleAddStock = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await fetch(`${baseUrl}/Stock`, {
+            const response = await fetch(`${baseUrl}/Delivery`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -160,6 +169,33 @@ const Instock: React.FC = () => {
         value: item.ean,
         label: item.tradeName,
     }));
+
+    const groupedStock = stock.reduce((acc: Record<string, GroupedStockItem>, item) => {
+        if (!acc[item.ean]) {
+            acc[item.ean] = {
+                tradeName: item.tradeName,
+                ean: item.ean,
+                totalQuantity: 0,
+                children: [],
+                unitType: item.unitType
+            };
+        }
+        acc[item.ean].totalQuantity += item.quantity;
+        acc[item.ean].children.push(item);
+        return acc;
+    }, {} as Record<string, GroupedStockItem>); // Dodaj type assertion tutaj
+
+    const toggleExpand = (ean: string) => {
+        setExpandedEans(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(ean)) {
+                newSet.delete(ean);
+            } else {
+                newSet.add(ean);
+            }
+            return newSet;
+        });
+    };
 
     if (loading) {
         return <div>Loading...</div>;
@@ -344,22 +380,46 @@ const Instock: React.FC = () => {
                     <tr>
                         <th>Name</th>
                         <th>EAN</th>
-                        <th>Series</th>
                         <th>Quantity</th>
-                        <th>Expiration Date</th>
-                        <th>Storage Location Code</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {stock.map((product) => (
-                        <tr key={product.series}>
-                            <td>{product.tradeName}</td>
-                            <td>{product.ean}</td>
-                            <td>{product.series}</td>
-                            <td>{product.quantity + " " + unitTypeMap[product.unitType]}</td>
-                            <td>{product.expirationDate}</td>
-                            <td>{product.storageLocationCode}</td>
-                        </tr>
+                    {Object.values(groupedStock).map((group) => (
+                        <React.Fragment key={group.ean}>
+                            <tr
+                                className="parent-row"
+                                onClick={() => toggleExpand(group.ean)}
+                            >
+                                <td>{group.tradeName}</td>
+                                <td>{group.ean}</td>
+                                <td>{group.totalQuantity} {unitTypeMap[group.unitType]}</td>
+                            </tr>
+
+                            {expandedEans.has(group.ean) && group.children.map((child) => (
+                                <tr key={`${child.ean}-${child.series}`} className="child-row">
+                                    <td colSpan={3}>
+                                        <div className="child-details">
+                                            <div>
+                                                <span className="detail-label">Series:</span>
+                                                <span>{child.series}</span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">Quantity:</span>
+                                                <span>{child.quantity}</span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">Expiration:</span>
+                                                <span>{child.expirationDate}</span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">Location:</span>
+                                                <span>{child.storageLocationCode}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </React.Fragment>
                     ))}
                 </tbody>
             </table>

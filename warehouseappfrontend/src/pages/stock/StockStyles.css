@@ -1,4 +1,4 @@
-.modal-buttons {
+﻿.modal-buttons {
     display: flex;
     gap: 4px;
     justify-content: center;
@@ -34,4 +34,130 @@ input[type="checkbox"]{
     width: 10%;
     position: relative;
     top: -1px;
+}
+/* Hierarchiczna tabela */
+.hierarchical-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+    .hierarchical-table th {
+        background-color: #f8f9fa;
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #2c3e50;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+/* Wiersze rodzicielskie */
+.parent-row {
+    background-color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+    .parent-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .parent-row td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+/* Wiersze dziecinne */
+.child-row {
+    background-color: #f8f9fa;
+    animation: expand 0.3s ease-out;
+}
+
+    .child-row td {
+        padding: 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+/* Szczegóły w wierszach dziecinnych */
+.child-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 12px 15px;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #6c757d;
+    margin-right: 8px;
+    white-space: nowrap;
+}
+
+.child-details > div {
+    display: flex;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+/* Animacje */
+@keyframes expand {
+    from {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        max-height: 500px;
+        transform: translateY(0);
+    }
+}
+
+/* Ikony */
+.fa-icon {
+    margin-right: 8px;
+}
+
+
+/* Wyszukiwarka */
+.search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+    .search-bar input,
+    .search-bar select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .search-bar button {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+/* Responsywność */
+@media (max-width: 768px) {
+    .child-details {
+        grid-template-columns: 1fr;
+    }
+
+    .search-bar {
+        flex-direction: column;
+    }
+
+    .hierarchical-table th,
+    .hierarchical-table td {
+        padding: 10px;
+    }
 }
