@@ -6,10 +6,11 @@ import './SalesStyles.css';
 interface Sale {
     productId: string;
     quantity: number;
-    price: number;
+    amountPaid: number;
+    profit: number;
     dateSaled: string;
     series: string;
-    userId: string;
+    userId: number;
 }
 
 interface SalesStats {
@@ -20,7 +21,6 @@ interface SalesStats {
 }
 
 const Sales: React.FC = () => {
-    const [sales, setSales] = useState<Sale[]>([]);
     const [filteredSales, setFilteredSales] = useState<Sale[]>([]);
     const [stats, setStats] = useState<SalesStats>({
         totalSales: 0,
@@ -47,8 +47,13 @@ const Sales: React.FC = () => {
 
                 if (filters.startDate) params.append('startDate', filters.startDate);
                 if (filters.endDate) params.append('endDate', filters.endDate);
+                if (filters.searchTerm) params.append('searchTerm', filters.searchTerm);
+                if (filters.userId) {
+                    const userId = Number(filters.userId);
+                    if (!isNaN(userId)) params.append('userId', userId.toString());
+                }
 
-                const response = await fetch(`${url}${params.toString()}`, {
+                const response = await fetch(`${url}?${params.toString()}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
                     },
@@ -60,7 +65,9 @@ const Sales: React.FC = () => {
                 }
 
                 const data = await response.json();
-                setSales(Array.isArray(data) ? data : [data]);
+                const salesData = Array.isArray(data) ? data : [data];
+                setFilteredSales(salesData);
+                calculateStats(salesData);
 
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -70,31 +77,11 @@ const Sales: React.FC = () => {
         };
 
         fetchSales();
-    }, [baseUrl, filters.startDate, filters.endDate]);
-
-    useEffect(() => {
-        const applyFilters = () => {
-            const filtered = sales.filter(sale => {
-                const matchesSearch = sale.productId.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-                    sale.series.toLowerCase().includes(filters.searchTerm.toLowerCase());
-                const matchesUser = sale.userId.toLowerCase().includes(filters.userId.toLowerCase());
-                const saleDate = new Date(sale.dateSaled);
-                const matchesStartDate = !filters.startDate || saleDate >= new Date(filters.startDate);
-                const matchesEndDate = !filters.endDate || saleDate <= new Date(filters.endDate);
-
-                return matchesSearch && matchesUser && matchesStartDate && matchesEndDate;
-            });
-
-            setFilteredSales(filtered);
-            calculateStats(filtered);
-        };
-
-        applyFilters();
-    }, [sales, filters]);
+    }, [baseUrl, filters]);
 
     const calculateStats = (salesData: Sale[]) => {
         const totalSales = salesData.reduce((sum, sale) => sum + sale.quantity, 0);
-        const totalRevenue = salesData.reduce((sum, sale) => sum + (sale.quantity * sale.price), 0);
+        const totalRevenue = salesData.reduce((sum, sale) => sum + sale.amountPaid, 0);
         const totalTransactions = salesData.length;
         const averageSale = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
@@ -125,7 +112,6 @@ const Sales: React.FC = () => {
         <div className="data-container">
             <h1>Historia Sprzedaży</h1>
 
-            {/* Filtry */}
             <div className="filters-container">
                 <div className="filter-group">
                     <label>Okres:</label>
@@ -160,7 +146,7 @@ const Sales: React.FC = () => {
                 <div className="filter-group">
                     <label>Użytkownik:</label>
                     <input
-                        type="text"
+                        type="number"
                         name="userId"
                         placeholder="ID użytkownika..."
                         value={filters.userId}
@@ -169,7 +155,6 @@ const Sales: React.FC = () => {
                 </div>
             </div>
 
-            {/* Statystyki */}
             <div className="stats-grid">
                 <div className="stat-card">
                     <h3>Łączna sprzedaż</h3>
@@ -189,14 +174,13 @@ const Sales: React.FC = () => {
                 </div>
             </div>
 
-            {/* Tabela */}
             <div className="table-wrapper">
                 <table className="sales-table">
                     <thead>
                         <tr>
                             <th>Produkt</th>
                             <th>Ilość</th>
-                            <th>Cena</th>
+                            <th>Kwota</th>
                             <th>Data</th>
                             <th>Seria</th>
                             <th>Użytkownik</th>
@@ -207,7 +191,7 @@ const Sales: React.FC = () => {
                             <tr key={`${sale.productId}-${sale.series}-${sale.dateSaled}`}>
                                 <td>{sale.productId}</td>
                                 <td>{sale.quantity}</td>
-                                <td>${sale.price.toFixed(2)}</td>
+                                <td>${sale.amountPaid.toFixed(2)}</td>
                                 <td>{new Date(sale.dateSaled).toLocaleDateString()}</td>
                                 <td>{sale.series}</td>
                                 <td>{sale.userId}</td>

@@ -26,7 +26,7 @@ th {
     font-weight: bold;
 }
 
-.edit-button, .delete-button, .save-button, .cancel-button{
+.edit-button, .delete-button, .save-button, .cancel-button, .add-item-button{
     margin: 0 5px; /* Odstępy między przyciskami */
     padding: 5px 10px;
     border: none;
