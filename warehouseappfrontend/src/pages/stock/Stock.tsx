@@ -16,6 +16,7 @@ interface Stock {
     expirationDate: string;
     storageLocationCode: string;
     unitType: number;
+    pricePaid: number;
 }
 
 type SelectOption = {
@@ -30,6 +31,7 @@ interface NewStock {
     quantity: number;
     expirationDate?: string;
     storageLocationCode: string;
+    pricePaid: number;
 }
 
 interface ErrorResponse {
@@ -59,8 +61,9 @@ const Instock: React.FC = () => {
         ean: '',
         series: '',
         quantity: 0,
-        expirationDate: '',
+        expirationDate: undefined,
         storageLocationCode: '',
+        pricePaid: 0,
     });
     const [selectValue, setSelectValue] = useState<SelectOption | null>(null);
 
@@ -123,6 +126,7 @@ const Instock: React.FC = () => {
             quantity: 0,
             expirationDate: '',
             storageLocationCode: '',
+            pricePaid: 0,
         });
 
     }
@@ -152,6 +156,7 @@ const Instock: React.FC = () => {
                 quantity: 0,
                 expirationDate: '',
                 storageLocationCode: '',
+                pricePaid: 0,
             });
         } catch (err: unknown) {
             if (err instanceof Error) {
@@ -341,6 +346,16 @@ const Instock: React.FC = () => {
                         />
                     </div>
                     <div className="form-group">
+                        <label>Price Paid:</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={newStock.pricePaid}
+                            onChange={(e) => setNewStock({ ...newStock, pricePaid: Number(e.target.value) })}
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
                         <div className="expdate-div">
                             <input type="checkbox" checked={isNewStockHaveExpDate} onChange={(e) => {
                                 if (!isNewStockHaveExpDate) setNewStock({ ...newStock, expirationDate: undefined });
@@ -406,6 +421,10 @@ const Instock: React.FC = () => {
                                             <div>
                                                 <span className="detail-label">Quantity:</span>
                                                 <span>{child.quantity}</span>
+                                            </div>
+                                            <div>
+                                                <span className="detail-label">Price Paid:</span>
+                                                <span>{child.pricePaid.toFixed(2)}</span>
                                             </div>
                                             <div>
                                                 <span className="detail-label">Expiration:</span>
