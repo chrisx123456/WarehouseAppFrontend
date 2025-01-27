@@ -28,10 +28,10 @@ type SelectOption = {
 interface NewStock {
     ean: string;
     series: string;
-    quantity: number;
+    quantity: number | null;
     expirationDate?: string;
     storageLocationCode: string;
-    pricePaid: number;
+    pricePaid: number | null;
 }
 
 interface ErrorResponse {
@@ -60,10 +60,10 @@ const Instock: React.FC = () => {
     const [newStock, setNewStock] = useState<NewStock>({
         ean: '',
         series: '',
-        quantity: 0,
+        quantity: null,
         expirationDate: undefined,
         storageLocationCode: '',
-        pricePaid: 0,
+        pricePaid: null,
     });
     const [selectValue, setSelectValue] = useState<SelectOption | null>(null);
 
@@ -341,19 +341,32 @@ const Instock: React.FC = () => {
                     <div className="form-group">
                         <label>Quantity:</label>
                         <input
-                            type="number"
-                            value={newStock.quantity}
-                            onChange={(e) => setNewStock({ ...newStock, quantity: Number(e.target.value) })}
+                            type="text"
+                            value={newStock.quantity ?? ""}
+                            onChange={(e) =>
+                                setNewStock({
+                                    ...newStock,
+                                    quantity: e.target.value === "" ? null : Number(e.target.value),
+                                })
+                            }
+                            pattern="^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$"
+                            title="Qantity must be an integer or decimal with two decimal places"
                             required
                         />
                     </div>
                     <div className="form-group">
                         <label>Price Paid:</label>
                         <input
-                            type="number"
-                            step="0.01"
-                            value={newStock.pricePaid}
-                            onChange={(e) => setNewStock({ ...newStock, pricePaid: Number(e.target.value) })}
+                            type="text"
+                            pattern="^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$"
+                            title="Price paid must be an integer or decimal with two decimal places"
+                            value={newStock.pricePaid ?? ""}
+                            onChange={(e) =>
+                                setNewStock({
+                                    ...newStock,
+                                    pricePaid: e.target.value === "" ? null : Number(e.target.value),
+                                })
+                            }
                             required
                         />
                     </div>

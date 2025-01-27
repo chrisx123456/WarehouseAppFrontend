@@ -75,7 +75,7 @@ const UserSales: React.FC = () => {
                 ]);
 
                 if (!salesResponse.ok) throw new Error((salesResponse as ErrorResponse)?.Message || 'Error fetching sales');
-                if (!productsResponse.ok) throw new Error((salesResponse as ErrorResponse)?.Message || 'Error fetching sales');
+                if (!productsResponse.ok) throw new Error((salesResponse as ErrorResponse)?.Message || 'Error fetching products');
 
                 const saleData = await salesResponse.json().then(data => {
                     return data.map((sale: Sale) => ({ ...sale, id: uuidv4(), }));
@@ -146,7 +146,8 @@ const UserSales: React.FC = () => {
         setSelectValues(prev => prev.filter((_, index) => saleItems[index].id !== id));
     };
 
-    const handleAddSaleSubmit = async () => {
+    const handleAddSaleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         try {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const itemsToSend = saleItems.map(({ id, ...rest }) => rest);
@@ -175,8 +176,8 @@ const UserSales: React.FC = () => {
 
     const handleConfirmSale = async () => {
         try {
-            const response = await fetch(`${baseUrl}/Sales/${summaryData?.pendingSaleId}/confirm`, {
-                method: 'PUT',
+            const response = await fetch(`${baseUrl}/Sale/confirm/${summaryData?.pendingSaleId}`, {
+                method: 'POST',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
                 },
@@ -188,6 +189,25 @@ const UserSales: React.FC = () => {
             window.location.reload();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Confirmation failed');
+        }
+    };
+    const handleRejectSale = async () => {
+        try {
+            const response = await fetch(`${baseUrl}/Sale/reject/${summaryData?.pendingSaleId}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = response.json() as ErrorResponse;
+                throw new Error(errorData.Message || 'Rejection failed');
+            }
+            setIsSummaryModalOpen(false);
+            window.location.reload();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Rejection failed');
         }
     };
 
@@ -235,111 +255,116 @@ const UserSales: React.FC = () => {
                 isOpen={isNewSaleModalOpen}
                 onRequestClose={() => {
                     setSaleItems([]);
-                    setIsNewSaleModalOpen(false)
+                    setIsNewSaleModalOpen(false);
                 }}
-                style={modalStyle}>
-                <div className="US-NewSaleModalDiv">
-                    <h2>New Sale</h2>
-                    <button type="button" onClick={handleAddSaleItem} className="add-item-button">
-                        <FontAwesomeIcon icon={faPlus} /> Add Product
+                style={modalStyle}
+            >
+                <form onSubmit={handleAddSaleSubmit}>
+                    <div className="US-NewSaleModalDiv">
+                        <h2>New Sale</h2>
+                        <button
+                            type="button"
+                            onClick={handleAddSaleItem}
+                            className="add-item-button"
+                        >
+                            <FontAwesomeIcon icon={faPlus} /> Add Product
                         </button>
-                </div>
-                {saleItems.map((item, index) => (
-                    <div key={item.id} className="form-group">
-                        <label>Product {index + 1}:</label>
-                        <div>
-                            <Select
-                                options={selectOptions}
-                                onChange={(selected) => handleSelectChange(item.id, selected)}
-                                value={selectValues[index]}
-                                placeholder="Select product..."
-                                styles={{
-                                    control: (baseStyles) => ({
-                                        ...baseStyles,
-                                        minHeight: '32px',
-                                        height: '32px',
-                                        minWidth: '90px',
-                                        width: '100%',
-                                        fontSize: '12px',
-                                        marginBottom: '8px'
-
-                                    }),
-                                    dropdownIndicator: (baseStyles) => ({
-                                        ...baseStyles,
-                                        padding: '4px',
-                                    }),
-                                    menu: (baseStyles) => ({
-                                        ...baseStyles,
-                                        fontSize: '14px',
-                                        width: '100%',
-                                    }),
-                                    menuList: (baseStyles) => ({
-                                        ...baseStyles,
-                                        height: '120px'
-                                    }),
-                                }}
-                            />
-                            <input
-                                type="text"
-                                value={item.ean}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    handleSaleItemChange(item.id, 'ean', value);
-
-                                    // Automatyczna aktualizacja selecta
-                                    const matchingProduct = products.find(p => p.ean === value);
-                                    setSelectValues(prev => {
-                                        const newValues = [...prev];
-                                        newValues[index] = matchingProduct ?
-                                            { value: matchingProduct.ean, label: matchingProduct.tradeName } :
-                                            null;
-                                        return newValues;
-                                    });
-                                }}
-                                inputMode="numeric"
-                                pattern="^(\d{8}|\d{13})$"
-                                title="EAN must be 8 or 13 digits"
-                                className="ean-input"
-                                placeholder="Enter EAN"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Quantity:</label>
-                            <input
-                                type="number"
-                                value={item.count}
-                                onChange={(e) => handleSaleItemChange(item.id, 'count', parseInt(e.target.value))}
-                                min="1"
-                                placeholder="Quantity"
-                            />
-                        </div>
-                        {saleItems.length > 1 && (
-                            <button
-                                type="button"
-                                className="US-NewSaleModal-delete-button"
-                                onClick={() => handleDeleteItem(item.id)}
-                            > 
-                                <FontAwesomeIcon icon={faTrash} /> Delete
-                            </button>
-                        )}
                     </div>
 
-                ))}
-                <div className="modal-buttons">
-                    <button type="button" onClick={handleAddSaleSubmit} className="save-button">
-                        <FontAwesomeIcon icon={faCheck} /> Submit
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setSaleItems([]);
-                            setIsNewSaleModalOpen(false)
-                        }}
-                        className="cancel-button"
-                    >
-                        <FontAwesomeIcon icon={faTimes} /> Cancel
-                    </button>
-                </div>
+                    {saleItems.map((item, index) => (
+                        <div key={item.id} className="form-group">
+                            <label>Product {index + 1}:</label>
+                            <div>
+                                <Select
+                                    options={selectOptions}
+                                    onChange={(selected) => handleSelectChange(item.id, selected)}
+                                    value={selectValues[index]}
+                                    placeholder="Select product..."
+                                    styles={{
+                                        control: (baseStyles) => ({
+                                            ...baseStyles,
+                                            minHeight: '32px',
+                                            height: '32px',
+                                            minWidth: '90px',
+                                            width: '100%',
+                                            fontSize: '12px',
+                                            marginBottom: '8px'
+                                        }),
+                                        dropdownIndicator: (baseStyles) => ({
+                                            ...baseStyles,
+                                            padding: '4px',
+                                        }),
+                                        menu: (baseStyles) => ({
+                                            ...baseStyles,
+                                            fontSize: '14px',
+                                            width: '100%',
+                                        }),
+                                        menuList: (baseStyles) => ({
+                                            ...baseStyles,
+                                            height: '120px'
+                                        }),
+                                    }}
+                                />
+                                <input
+                                    type="text"
+                                    value={item.ean}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        handleSaleItemChange(item.id, 'ean', value);
+                                        const matchingProduct = products.find(p => p.ean === value);
+                                        setSelectValues(prev => {
+                                            const newValues = [...prev];
+                                            newValues[index] = matchingProduct ?
+                                                { value: matchingProduct.ean, label: matchingProduct.tradeName } :
+                                                null;
+                                            return newValues;
+                                        });
+                                    }}
+                                    inputMode="numeric"
+                                    pattern="^(\d{8}|\d{13})$"
+                                    title="EAN must be 8 or 13 digits"
+                                    className="ean-input"
+                                    placeholder="Enter EAN"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Quantity:</label>
+                                <input
+                                    type="number"
+                                    value={item.count}
+                                    onChange={(e) => handleSaleItemChange(item.id, 'count', parseInt(e.target.value))}
+                                    min="1"
+                                    placeholder="Quantity"
+                                />
+                            </div>
+                            {saleItems.length > 1 && (
+                                <button
+                                    type="button"
+                                    className="US-NewSaleModal-delete-button"
+                                    onClick={() => handleDeleteItem(item.id)}
+                                >
+                                    <FontAwesomeIcon icon={faTrash} /> Delete
+                                </button>
+                            )}
+                        </div>
+                    ))}
+
+                    <div className="modal-buttons">
+                        <button type="submit" className="save-button">
+                            <FontAwesomeIcon icon={faCheck} /> Submit
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSaleItems([{ id: uuidv4(), ean: '', count: 0 }]);
+                                setIsNewSaleModalOpen(false);
+                            }}
+                            className="cancel-button"
+                        >
+                            <FontAwesomeIcon icon={faTimes} /> Cancel
+                        </button>
+                    </div>
+                </form>
             </ReactModal>
 
             <ReactModal
@@ -394,6 +419,7 @@ const UserSales: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => {
+                                handleRejectSale();
                                 setIsSummaryModalOpen(false)
                                 setSummaryData(null);
                             }}
