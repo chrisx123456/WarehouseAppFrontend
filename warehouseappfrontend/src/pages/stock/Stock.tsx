@@ -120,11 +120,12 @@ const Instock: React.FC = () => {
 
     const handleModalClose = () => {
         setIsModalOpen(false)
+        setSelectValue(null);
         setNewStock({
             ean: '',
             series: '',
             quantity: 0,
-            expirationDate: '',
+            expirationDate: undefined,
             storageLocationCode: '',
             pricePaid: 0,
         });
@@ -144,17 +145,18 @@ const Instock: React.FC = () => {
             });
 
             if (!response.ok) {
+                handleModalClose();
                 const errorData = await response.json() as ErrorResponse;
                 throw new Error(`Error adding stock: ${response.status} - ${errorData.Message || 'No details'}`);
             }
-
+            setError(null);
+            handleModalClose();
             await fetchStock();
-            setIsModalOpen(false);
             setNewStock({
                 ean: '',
                 series: '',
                 quantity: 0,
-                expirationDate: '',
+                expirationDate: undefined,
                 storageLocationCode: '',
                 pricePaid: 0,
             });

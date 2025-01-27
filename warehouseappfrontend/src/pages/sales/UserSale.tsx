@@ -11,17 +11,19 @@ import { Product } from '../../types/Product';
 
 interface Sale {
     id: string;
-    productEAN: string;
+    tradeName: string;
     quantity: number;
     amountPaid: number;
-    date: string;
-    status: 'pending' | 'completed';
+    profit: number;
+    dateSaled: string;
+    series: string;
+    ean: string
 }
 
 interface SaleItem {
     id: string;
     ean: string;
-    quantity: number;
+    count: number;
 }
 
 interface ProductPreview {
@@ -43,6 +45,9 @@ type SelectOption = {
     value: string;
     label: string;
 };
+interface ErrorResponse {
+    Message?: string;
+}
 
 const UserSales: React.FC = () => {
     const [sales, setSales] = useState<Sale[]>([]);
@@ -51,7 +56,7 @@ const UserSales: React.FC = () => {
     const [isNewSaleModalOpen, setIsNewSaleModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
-    const [saleItems, setSaleItems] = useState<SaleItem[]>([{ id: uuidv4(), ean: '', quantity: 0 }]);
+    const [saleItems, setSaleItems] = useState<SaleItem[]>([{ id: uuidv4(), ean: '', count: 0 }]);
     const [summaryData, setSummaryData] = useState<SaleSummary | null>(null);
     const [selectValues, setSelectValues] = useState<(SingleValue<SelectOption> | null)[]>([]);
 
@@ -61,7 +66,7 @@ const UserSales: React.FC = () => {
         const fetchData = async () => {
             try {
                 const [salesResponse, productsResponse] = await Promise.all([
-                    fetch(`${baseUrl}/Sales`, {
+                    fetch(`${baseUrl}/Sale/userSales`, {
                         headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` },
                     }),
                     fetch(`${baseUrl}/Product`, {
@@ -69,10 +74,15 @@ const UserSales: React.FC = () => {
                     })
                 ]);
 
-               // if (!salesResponse.ok) throw new Error('Error fetching sales');
-                if (!productsResponse.ok) throw new Error('Error fetching products');
+                if (!salesResponse.ok) throw new Error((salesResponse as ErrorResponse)?.Message || 'Error fetching sales');
+                if (!productsResponse.ok) throw new Error((salesResponse as ErrorResponse)?.Message || 'Error fetching sales');
 
-                //setSales(await salesResponse.json());
+                const saleData = await salesResponse.json().then(data => {
+                    return data.map((sale: Sale) => ({ ...sale, id: uuidv4(), }));
+                });
+
+                setSales(saleData);
+
                 setProducts(await productsResponse.json());
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to load data');
@@ -90,7 +100,7 @@ const UserSales: React.FC = () => {
     };
 
     const handleAddSaleItem = () => {
-        setSaleItems([...saleItems, { id: uuidv4(), ean: '', quantity: 0 }]);
+        setSaleItems([...saleItems, { id: uuidv4(), ean: '', count: 0 }]);
         setSelectValues([...selectValues, null]);
     };
 
@@ -138,18 +148,20 @@ const UserSales: React.FC = () => {
 
     const handleAddSaleSubmit = async () => {
         try {
-            const response = await fetch(`${baseUrl}/Sales`, {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const itemsToSend = saleItems.map(({ id, ...rest }) => rest);
+            console.log(itemsToSend);
+            const response = await fetch(`${baseUrl}/Sale/GeneratePendingSales`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
                 },
-                body: JSON.stringify({ items: saleItems }),
+                body: JSON.stringify(itemsToSend),
             });
-
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.Message || 'Failed to create sale');
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(errorData?.Message || 'Failed to create sale');
             }
 
             const summary = await response.json();
@@ -197,21 +209,23 @@ const UserSales: React.FC = () => {
             <table>
                 <thead>
                     <tr>
-                        <th>Product</th>
+                        <th>Trade Name</th>
                         <th>Quantity</th>
                         <th>Amount Paid</th>
-                        <th>Status</th>
+                        <th>Profit</th>
+                        <th>Series</th>
                         <th>Date</th>
                     </tr>
                 </thead>
                 <tbody>
                     {sales.map((sale) => (
                         <tr key={sale.id}>
-                            <td>{getProductDetails(sale.productEAN)}</td>
+                            <td>{sale.tradeName}</td>
                             <td>{sale.quantity}</td>
-                            <td>{sale.amountPaid.toFixed(2)} PLN</td>
-                            <td>{sale.status}</td>
-                            <td>{new Date(sale.date).toLocaleDateString()}</td>
+                            <td>{sale.amountPaid.toFixed(2)}</td>
+                            <td>{sale.profit}</td>
+                            <td>{sale.series}</td>
+                            <td>{new Date(sale.dateSaled).toLocaleDateString()}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -219,7 +233,10 @@ const UserSales: React.FC = () => {
 
             <ReactModal
                 isOpen={isNewSaleModalOpen}
-                onRequestClose={() => setIsNewSaleModalOpen(false)}
+                onRequestClose={() => {
+                    setSaleItems([]);
+                    setIsNewSaleModalOpen(false)
+                }}
                 style={modalStyle}>
                 <div className="US-NewSaleModalDiv">
                     <h2>New Sale</h2>
@@ -290,8 +307,8 @@ const UserSales: React.FC = () => {
                             <label>Quantity:</label>
                             <input
                                 type="number"
-                                value={item.quantity}
-                                onChange={(e) => handleSaleItemChange(item.id, 'quantity', parseInt(e.target.value))}
+                                value={item.count}
+                                onChange={(e) => handleSaleItemChange(item.id, 'count', parseInt(e.target.value))}
                                 min="1"
                                 placeholder="Quantity"
                             />
@@ -314,7 +331,10 @@ const UserSales: React.FC = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setIsNewSaleModalOpen(false)}
+                        onClick={() => {
+                            setSaleItems([]);
+                            setIsNewSaleModalOpen(false)
+                        }}
                         className="cancel-button"
                     >
                         <FontAwesomeIcon icon={faTimes} /> Cancel
@@ -324,30 +344,75 @@ const UserSales: React.FC = () => {
 
             <ReactModal
                 isOpen={isSummaryModalOpen}
-                onRequestClose={() => setIsSummaryModalOpen(false)}
-                style={modalStyle}
+                onRequestClose={() => {
+                    setIsSummaryModalOpen(false)
+                    setSummaryData(null);
+                }}
+                style={modalSummaryStyle}
             >
-                <h2>Sale Summary</h2>
-                <pre>{JSON.stringify(summaryData, null, 2)}</pre>
-                <div className="modal-buttons">
-                    <button type="button" onClick={handleConfirmSale} className="save-button">
-                        <FontAwesomeIcon icon={faCheck} /> Confirm
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setIsSummaryModalOpen(false)}
-                        className="cancel-button"
-                    >
-                        <FontAwesomeIcon icon={faTimes} /> Cancel
-                    </button>
+                <div className="summary-modal">
+                    <h2>Sale Summary</h2>
+                    <div className="pending-id">
+                        Pending Sale ID: {summaryData?.pendingSaleId}
+                    </div>
+
+                    <div className="product-previews-container">
+                        <div className="product-previews-scroll">
+                            {summaryData?.productPreviews?.map((product, index) => (
+                                <div key={index} className="product-preview-card">
+                                    <h3>Product {index + 1}</h3>
+                                    <div className="product-detail">
+                                        <span>EAN:</span> {product.ean}
+                                    </div>
+                                    <div className="product-detail">
+                                        <span>Name:</span> {product.name}
+                                    </div>
+                                    <div className="product-detail">
+                                        <span>Trade Name:</span> {product.tradeName}
+                                    </div>
+                                    <div className="product-detail">
+                                        <span>Series:</span> {product.series}
+                                    </div>
+                                    <div className="product-detail">
+                                        <span>Quantity:</span> {product.quantity}
+                                    </div>
+                                    <div className="product-detail">
+                                        <span>Amount:</span> {product.amountToBePaid.toFixed(2)} PLN
+                                    </div>
+                                    <div className="product-detail">
+                                        <span>Profit:</span> {product.profit.toFixed(2)} PLN
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="modal-buttons">
+                        <button type="button" onClick={handleConfirmSale} className="save-button">
+                            <FontAwesomeIcon icon={faCheck} /> Confirm
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsSummaryModalOpen(false)
+                                setSummaryData(null);
+                            }}
+                            className="cancel-button"
+                        >
+                            <FontAwesomeIcon icon={faTimes} /> Cancel
+                        </button>
+                    </div>
                 </div>
             </ReactModal>
         </div>
     );
 };
 
-const modalStyle = {
-    overlay: { backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+const modalStyle: ReactModal.Styles = {
+    overlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 1000
+    },
     content: {
         top: '50%',
         left: '50%',
@@ -358,8 +423,34 @@ const modalStyle = {
         padding: '20px',
         borderRadius: '8px',
         maxWidth: '600px',
+        maxHeight: '80vh',
+        display: 'flex',
+        flexDirection: 'column' as React.CSSProperties['flexDirection'],
+        overflow: 'hidden',
+        boxSizing: 'border-box',
+        overflowY: 'auto'
     }
 };
-
+const modalSummaryStyle: ReactModal.Styles = {
+    overlay: {
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        zIndex: 1000
+    },
+    content: {
+        top: '50%',
+        left: '50%',
+        right: 'auto',
+        bottom: 'auto',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)',
+        padding: '20px',
+        borderRadius: '8px',
+        maxWidth: '800px',
+        maxHeight: '80vh',
+        display: 'flex',
+        flexDirection: 'column' as React.CSSProperties['flexDirection'],
+        overflow: 'hidden'
+    }
+};
 
 export default UserSales;
