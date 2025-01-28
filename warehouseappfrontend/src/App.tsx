@@ -25,7 +25,9 @@ interface ErrorResponse {
 interface TokenResponse {
     token: string
 }
-
+interface Currency {
+    currency: string;
+}
 
 const Login: React.FC<LoginProps> = ({ onLogin, initialError }) => {
     const [username, setUsername] = useState('');
@@ -48,7 +50,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, initialError }) => {
 
             if (!response.ok) {
                 const errorLogin = await response.json() as ErrorResponse;
-                throw new Error(`Błąd logowania: ${errorLogin.Message}`);
+                throw new Error(`Login error: ${errorLogin.Message}`);
             }
 
             const tokenResponse = await response.json() as TokenResponse;
@@ -63,12 +65,25 @@ const Login: React.FC<LoginProps> = ({ onLogin, initialError }) => {
 
             if (!roleResponse.ok) {
                 const errorRoleData = await roleResponse.json() as ErrorResponse;
-                throw new Error(`Błąd pobierania roli: ${errorRoleData.Message}`);
+                throw new Error(`Error fetching role: ${errorRoleData.Message}`);
             }
 
             const user = await roleResponse.json() as User;
             const role = user.role;
 
+            const currencyResponse = await fetch(`${baseUrl}/Admin/currency`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!currencyResponse.ok) {
+                throw new Error(`Error fetching currency`);
+            }
+            const currency = await currencyResponse.json() as Currency;
+
+            localStorage.setItem('currency', currency.currency);
             localStorage.setItem('jwtToken', token);
             localStorage.setItem('role', role);
             onLogin({ role });
@@ -79,7 +94,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, initialError }) => {
                 setError(error.message);
             } else {
                 console.error("Login error:", error); // Logujemy cały obiekt błędu
-                setError("Wystąpił nieznany błąd."); // Wyświetlamy ogólny komunikat
+                setError("An error occured"); // Wyświetlamy ogólny komunikat
             }
 
         }
@@ -91,14 +106,14 @@ const Login: React.FC<LoginProps> = ({ onLogin, initialError }) => {
             {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit}>
                 <div className="input-group">
-                    <label htmlFor="username">Nazwa użytkownika:</label>
+                    <label htmlFor="username">Email:</label>
                     <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
                 </div>
                 <div className="input-group">
-                    <label htmlFor="password">Hasło:</label>
+                    <label htmlFor="password">Password:</label>
                     <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
-                <button type="submit">Zaloguj</button>
+                <button type="submit">Login</button>
             </form>
         </div>
     );
@@ -122,6 +137,19 @@ const App: React.FC = () => {
                             'Authorization': `Bearer ${token}`,
                         },
                     });
+                    const currencyResponse = await fetch(`${baseUrl}/Admin/currency`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    });
+
+                    if (!currencyResponse.ok) {
+                        throw new Error(`Error fetching currency`);
+                    }
+                    const currency = await currencyResponse.json() as Currency;
+
+                    localStorage.setItem('currency', currency.currency);
 
                     if (roleResponse.ok) {
                         const roleData = await roleResponse.json();
@@ -172,7 +200,7 @@ const App: React.FC = () => {
         <div className="app-container">
             {user && <Navigation user={user} />}
             <div className="content-wrapper">
-                {user && <button onClick={handleLogout} className="logout-button">Wyloguj</button>} {/* Warunkowe renderowanie */}
+                {user && <button onClick={handleLogout} className="logout-button">Logout</button>} {/* Warunkowe renderowanie */}
                 <Content>
                     <Routes>
                         <Route path="/" element={<Home />} />

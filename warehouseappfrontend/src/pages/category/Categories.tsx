@@ -178,13 +178,13 @@ const Categories: React.FC = () => {
         <div className="categories-container">
             <h1>Categories</h1>
             {error && <div className="error-message">{error}</div>} {/* Display errors above content */}
-            {canAddVal && <button className="add-button" onClick={handleAddCategory}> <FontAwesomeIcon icon={faPlus} /> Dodaj kategorię</button>}
+            {canAddVal && <button className="add-button" onClick={handleAddCategory}> <FontAwesomeIcon icon={faPlus} /> Add new category</button>}
             <table>
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>VAT</th>
-                        {canEditVal && canDeleteVal && <th>Akcje</th>}
+                        {/*{canEditVal && canDeleteVal && <th>Akcje</th>}*/}
                     </tr>
                 </thead>
                 <tbody>

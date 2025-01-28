@@ -42,6 +42,7 @@ const Products: React.FC = () => {
     const [selectedDescriptionView, setSelectedDescriptionView] = useState<string | null>(null);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+    const crncy = localStorage.getItem('currency') as string;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -144,13 +145,13 @@ const Products: React.FC = () => {
     const handleSaveEditProduct = async () => {
         if (!editingProduct) return;
         try {
-            const changes: { description?: string; price?: number } = {};
+            const changes: { description?: string; price?: number | null | undefined } = {};
             const originalProduct = products.find(p => p.ean === editingProduct.ean);
             if (!originalProduct) return
             if (editingProduct.description !== originalProduct.description) {
                 changes.description = editingProduct.description;
             }
-            if (editingProduct.price !== originalProduct.price) {
+            if (editingProduct.price !== originalProduct.price && originalProduct.price) {
                 changes.price = editingProduct.price;
             }
             if (Object.keys(changes).length === 0) {
@@ -188,11 +189,20 @@ const Products: React.FC = () => {
 
     return (
         <div className="manufacturers-container">
-            {error && <div className="error-message">{error}</div>}
+            {error && (
+                <div className="error-message">
+                    {error.split("#").map((line, index) => (
+                        <React.Fragment key={index}>
+                            {line}
+                            <br />
+                        </React.Fragment>
+                    ))}
+                </div>
+            )}
             <h1>Products</h1>
             {canAddVal && (
                 <button className="add-button" onClick={handleAddProduct}>
-                    <FontAwesomeIcon icon={faPlus} /> Dodaj Produkt
+                    <FontAwesomeIcon icon={faPlus} /> Add Product
                 </button>
             )}
             <table>
@@ -209,11 +219,11 @@ const Products: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {newProduct && ( // Formularz dodawania jest renderowany warunkowo
-                        <tr>
+                    {newProduct && (
+                        <tr> 
                             <td>
                                 <Select placeholder="..." styles={{
-                                    control: (baseStyles, state) => ({
+                                    control: (baseStyles) => ({
                                         ...baseStyles,
                                         minHeight: '32px',
                                         height: '32px',
@@ -222,15 +232,15 @@ const Products: React.FC = () => {
                                         fontSize: '12px',
 
                                     }),
-                                    dropdownIndicator: (baseStyles, state) => ({
+                                    dropdownIndicator: (baseStyles) => ({
                                         ...baseStyles,
                                         padding: '4px',
                                     }),
-                                    indicatorSeparator: (baseStyles, state) => ({
+                                    indicatorSeparator: (baseStyles) => ({
                                         ...baseStyles,
                                         visibility: 'hidden',
                                     }),
-                                    menu: (baseStyles, state) => ({
+                                    menu: (baseStyles) => ({
                                         ...baseStyles,
                                         fontSize: '14px',
                                         width: '150px'
@@ -246,7 +256,7 @@ const Products: React.FC = () => {
                             <td><input type="text" value={newProduct.tradeName} onChange={(e) => setNewProduct({ ...newProduct, tradeName: e.target.value })} /></td>
                             <td>
                                 <Select placeholder="..." styles={{
-                                    control: (baseStyles, state) => ({
+                                    control: (baseStyles) => ({
                                         ...baseStyles,
                                         minHeight: '32px',
                                         height: '32px',
@@ -255,15 +265,15 @@ const Products: React.FC = () => {
                                         fontSize: '12px',
                                         
                                     }),
-                                    dropdownIndicator: (baseStyles, state) => ({
+                                    dropdownIndicator: (baseStyles) => ({
                                         ...baseStyles,
                                         padding: '4px',
                                     }),
-                                    indicatorSeparator: (baseStyles, state) => ({
+                                    indicatorSeparator: (baseStyles) => ({
                                         ...baseStyles,
                                         visibility: 'hidden',
                                     }),
-                                    menu: (baseStyles, state) => ({
+                                    menu: (baseStyles) => ({
                                         ...baseStyles,
                                         fontSize: '14px',
                                         width: '150px'
@@ -282,15 +292,46 @@ const Products: React.FC = () => {
                                     ))}
                                 </select>
                             </td>
-                            <td><input type="number" value={newProduct.price} onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) || 0 })} /></td>
+                            <td>
+                                <input type="number"
+                                value={newProduct.price ?? ""}
+                                    onChange={(e) => {
+                                        if (/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(e.target.value) || e.target.value === "")
+                                            setNewProduct({
+                                                ...newProduct,
+                                                price: Number.parseFloat(Number.parseFloat(e.target.value).toFixed(2))
+                                            });
+                                    }}
+                                    required
+                                />
+                            </td>
                             <td><input type="text" value={newProduct.ean} onChange={(e) => setNewProduct({ ...newProduct, ean: e.target.value })} /></td>
                             <td style={{ cursor: 'pointer' }}>
                                 <span onClick={() => setNewDescriptionModalIsOpen(true)}>
-                                    {newProduct.description && newProduct.description.length > 0 ? "..." : "Dodaj opis"}
+                                    {newProduct.description && newProduct.description.length > 0 ? "..." : "Add description"}
                                 </span>
                             </td>
                             <td>
-                                <button className="save-button" onClick={handleSaveNewProduct}><FontAwesomeIcon icon={faCheck} /></button>
+                                <button className="save-button" onClick={(e) => {
+                                    e.preventDefault();
+                                    let newErrors = "Validation Errors:#";
+
+                                    if (!newProduct.manufacturerName) newErrors += "Choose manufacturer#";
+                                    if (!newProduct.name.trim()) newErrors += "Name is required#";
+                                    if (!newProduct.categoryName) newErrors += "Choose category#";
+                                    if (!newProduct.unitType) newErrors += "Choose unit type#";
+                                    if (!/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(newProduct.price ? newProduct.price.toString() : "")) newErrors += ("Price paid must be an integer or decimal with two decimal places#")
+                                    if (!/^(\d{8}|\d{13})$/.test(newProduct.ean)) newErrors += ("EAN must be 13 or 8 long and digits only#");
+
+                                    if (newErrors.length > 18) {
+                                        setError(newErrors);
+                                    } else {
+                                        setError(null);
+                                        handleSaveNewProduct();
+                                    }
+                                }}>
+                                    <FontAwesomeIcon icon={faCheck} />
+                                </button>
                                 <button className="cancel-button" onClick={() => setNewProduct(null)}><FontAwesomeIcon icon={faTimes} /></button>
                             </td>
                         </tr>
@@ -304,33 +345,32 @@ const Products: React.FC = () => {
                             <td>{getUnitTypeLabel(product.unitType)}</td>
                             <td>
                                 {editingProduct?.ean === product.ean ? (
-                                    <input type="number" value={editingProduct?.price || ''} onChange={(e) => {
-                                            const newValue = e.target.value;
-                                            setEditingProduct(prevProduct => {
-                                                if (!prevProduct) return null;
-                                                const parsedValue = newValue === '' ? '' : parseFloat(newValue);
-                                                return {
-                                                    ...prevProduct,
-                                                    price: typeof parsedValue === 'number' && !isNaN(parsedValue) ? parsedValue : 0,
-                                                };
-                                            });
+                                    <input
+                                        type="number"
+                                        value={editingProduct.price ?? ""}
+                                        onChange={(e) => {
+                                            if (/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(e.target.value) || e.target.value === "")
+                                                setEditingProduct({
+                                                    ...editingProduct,
+                                                    price: Number.parseFloat(Number.parseFloat(e.target.value).toFixed(2))
+                                                });
                                         }}
                                     />
                                 ) : (
-                                    product.price
+                                    product.price?.toString() + " " + crncy
                                 )}
                             </td>
                             <td>{product.ean}</td>
                             <td style={{ cursor: 'pointer' }}>
                                 {editingProduct?.ean === product.ean ? (
                                     <span onClick={() => setNewDescriptionModalIsOpen(true)}>
-                                        {editingProduct.description && editingProduct.description.length > 0 ? "..." : "Dodaj opis"}
+                                        {editingProduct.description && editingProduct.description.length > 0 ? "..." : "Add description"}
                                     </span>
                                 ) : (
                                     product.description && product.description.length > 0 ? (
                                         <span onClick={() => handleDescriptionViewClick(product.description as string)}>...</span>
                                     ) : (
-                                        <span>Brak opisu</span>
+                                        <span>No desc.</span>
                                     )
                                 )}
                             </td>

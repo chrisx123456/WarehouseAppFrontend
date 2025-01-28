@@ -8,6 +8,7 @@ import Select from 'react-select'; // Importujemy react-select
 import '../GeneralStyles.css';
 import './StockStyles.css';
 import { Product } from '../../types/Product'
+import { _ } from 'react-router/dist/development/fog-of-war-DLtn2OLr';
 interface Stock {
     tradeName: string;
     series: string;
@@ -28,7 +29,7 @@ type SelectOption = {
 interface NewStock {
     ean: string;
     series: string;
-    quantity: number | null;
+    quantity: number;
     expirationDate?: string;
     storageLocationCode: string;
     pricePaid: number | null;
@@ -73,7 +74,7 @@ const Instock: React.FC = () => {
     useEffect(() => {
         fetchStock();
     }, [baseUrl]);
-
+    const crncy = localStorage.getItem('currency');
     const fetchStock = async () => {
         try {
             setLoading(true);
@@ -210,7 +211,7 @@ const Instock: React.FC = () => {
 
     return (
         <div className="products-container">
-            <h1>Products</h1>
+            <h1>Products in stock</h1>
             <div className="top-controls">
                 <button
                     className="add-button"
@@ -341,14 +342,15 @@ const Instock: React.FC = () => {
                     <div className="form-group">
                         <label>Quantity:</label>
                         <input
-                            type="text"
+                            type="number"
                             value={newStock.quantity ?? ""}
-                            onChange={(e) =>
-                                setNewStock({
-                                    ...newStock,
-                                    quantity: e.target.value === "" ? null : Number(e.target.value),
-                                })
-                            }
+                            onChange={(e) => {
+                                if (/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(e.target.value) || e.target.value === "")
+                                    setNewStock({
+                                        ...newStock,
+                                        quantity: Number.parseFloat(Number.parseFloat(e.target.value).toFixed(2))
+                                    });
+                            }}
                             pattern="^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$"
                             title="Qantity must be an integer or decimal with two decimal places"
                             required
@@ -361,12 +363,13 @@ const Instock: React.FC = () => {
                             pattern="^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$"
                             title="Price paid must be an integer or decimal with two decimal places"
                             value={newStock.pricePaid ?? ""}
-                            onChange={(e) =>
-                                setNewStock({
-                                    ...newStock,
-                                    pricePaid: e.target.value === "" ? null : Number(e.target.value),
-                                })
-                            }
+                            onChange={(e) => {
+                                if (/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(e.target.value) || e.target.value === "")
+                                    setNewStock({
+                                        ...newStock,
+                                        pricePaid: Number.parseFloat(Number.parseFloat(e.target.value).toFixed(2))
+                                    });
+                            }}
                             required
                         />
                     </div>
@@ -439,7 +442,7 @@ const Instock: React.FC = () => {
                                             </div>
                                             <div>
                                                 <span className="detail-label">Price Paid:</span>
-                                                <span>{child.pricePaid.toFixed(2)}</span>
+                                                <span>{child.pricePaid.toFixed(2) + " " + crncy}</span>
                                             </div>
                                             <div>
                                                 <span className="detail-label">Expiration:</span>

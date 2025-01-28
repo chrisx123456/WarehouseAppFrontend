@@ -174,7 +174,7 @@ const Manufacturers: React.FC = () => {
                 <thead>
                     <tr>
                         <th>Name</th>
-                        {canEditVal && canDeleteVal && <th>Actions</th>}
+                       {/* {canEditVal && canDeleteVal && <th>Actions</th>}*/}
                     </tr>
                 </thead>
                 <tbody>
