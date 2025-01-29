@@ -297,14 +297,8 @@ const Products: React.FC = () => {
                             </td>
                             <td>
                                 <input type="number"
-                                value={newProduct.price ?? ""}
-                                    onChange={(e) => {
-                                        if (/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(e.target.value) || e.target.value === "")
-                                            setNewProduct({
-                                                ...newProduct,
-                                                price: Number.parseFloat(Number.parseFloat(e.target.value).toFixed(2))
-                                            });
-                                    }}
+                                    value={newProduct.price ?? ""}
+                                    onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) })}
                                     required
                                 />
                             </td>
@@ -323,7 +317,7 @@ const Products: React.FC = () => {
                                     if (!newProduct.name.trim()) newErrors += "Name is required#";
                                     if (!newProduct.categoryName) newErrors += "Choose category#";
                                     if (isNaN(newProduct.unitType)) newErrors += "Choose unit type#";
-                                    if (!/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(newProduct.price ? newProduct.price.toString() : "")) newErrors += ("Price paid must be an integer or decimal with two decimal places#")
+                                    if (!/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(newProduct.price ? newProduct.price.toString() : "")) newErrors += ("Price must be an integer or decimal with two decimal places#")
                                     if (!/^(\d{8}|\d{13})$/.test(newProduct.ean)) newErrors += ("EAN must be 13 or 8 long and digits only#");
 
                                     if (newErrors.length > 20) {
@@ -351,13 +345,10 @@ const Products: React.FC = () => {
                                     <input
                                         type="number"
                                         value={editingProduct.price ?? ""}
-                                        onChange={(e) => {
-                                            if (/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(e.target.value) || e.target.value === "")
-                                                setEditingProduct({
-                                                    ...editingProduct,
-                                                    price: Number.parseFloat(Number.parseFloat(e.target.value).toFixed(2))
-                                                });
-                                        }}
+                                        onChange={(e) => setEditingProduct({
+                                            ...editingProduct,
+                                            price: parseFloat(e.target.value)
+                                        })}
                                     />
                                 ) : (
                                     product.price?.toString() + " " + crncy

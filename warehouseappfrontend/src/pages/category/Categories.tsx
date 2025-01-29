@@ -203,7 +203,7 @@ const Categories: React.FC = () => {
                                     min="0"
                                     max="99"
                                     value={newCategory.vat}
-                                    onChange={(e) => setNewCategory({ ...newCategory, vat: parseInt(e.target.value) || -1 })}
+                                    onChange={(e) => setNewCategory({ ...newCategory, vat: parseInt(e.target.value) })}
                                 />
                             </td>
                             <td>
@@ -227,8 +227,7 @@ const Categories: React.FC = () => {
                                         max="99"
                                         value={category.vat}
                                         onChange={(e) => {
-                                            const newVat = parseInt(e.target.value);
-                                            setCategories(categories.map((c) => c.name === category.name ? { ...c, vat: isNaN(newVat) ? -1 : newVat } : c));
+                                            setCategories(categories.map((c) => c.name === category.name ? { ...c, vat: parseFloat(e.target.value) } : c));
                                         }} />
                                     ) : (
                                     category.vat

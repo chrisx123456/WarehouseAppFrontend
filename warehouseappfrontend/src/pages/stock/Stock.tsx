@@ -8,6 +8,7 @@ import Select from 'react-select'; // Importujemy react-select
 import '../GeneralStyles.css';
 import './StockStyles.css';
 import { Product } from '../../types/Product'
+import { parse } from 'uuid';
 interface Stock {
     tradeName: string;
     series: string;
@@ -31,7 +32,7 @@ interface NewStock {
     quantity: number;
     expirationDate?: string;
     storageLocationCode: string;
-    pricePaid: number | null;
+    pricePaid: number;
 }
 
 interface ErrorResponse {
@@ -63,7 +64,7 @@ const Instock: React.FC = () => {
         quantity: 0,
         expirationDate: undefined,
         storageLocationCode: '',
-        pricePaid: null,
+        pricePaid: 0,
     });
     const [selectValue, setSelectValue] = useState<SelectOption | null>(null);
 
@@ -344,10 +345,9 @@ const Instock: React.FC = () => {
                             type="number"
                             value={newStock.quantity ?? ""}
                             onChange={(e) => {
-                                if (/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(e.target.value) || e.target.value === "")
                                     setNewStock({
                                         ...newStock,
-                                        quantity: Number.parseFloat(e.target.value)
+                                        quantity: parseFloat(e.target.value)
                                     });
                             }}
                             pattern="^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$"
@@ -363,10 +363,9 @@ const Instock: React.FC = () => {
                             title="Price paid must be an integer or decimal with two decimal places"
                             value={newStock.pricePaid ?? ""}
                             onChange={(e) => {
-                                if (/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(e.target.value) || e.target.value === "")
                                     setNewStock({
                                         ...newStock,
-                                        pricePaid: Number.parseFloat(e.target.value)
+                                        pricePaid: parseFloat(e.target.value)
                                     });
                             }}
                             required

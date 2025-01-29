@@ -423,6 +423,7 @@ const UserSales: React.FC = () => {
                                     title="EAN must be 8 or 13 digits"
                                     className="ean-input"
                                     placeholder="Enter EAN"
+                                    required
                                 />
                             </div>
                             <div className="form-group">
@@ -430,8 +431,7 @@ const UserSales: React.FC = () => {
                                 <input
                                     type="number"
                                     value={item.count}
-                                    onChange={(e) => handleSaleItemChange(item.id, 'count', parseInt(e.target.value))}
-                                    min="1"
+                                    onChange={(e) => handleSaleItemChange(item.id, 'count', parseFloat(e.target.value))}
                                     placeholder="Quantity"
                                 />
                             </div>
@@ -500,10 +500,10 @@ const UserSales: React.FC = () => {
                                         <span>Quantity:</span> {product.quantity}
                                     </div>
                                     <div className="product-detail">
-                                        <span>Amount:</span> {product.amountToBePaid.toFixed(2)} PLN
+                                        <span>Amount:</span> {product.amountToBePaid.toFixed(2) + " " + crncy} 
                                     </div>
                                     <div className="product-detail">
-                                        <span>Profit:</span> {product.profit.toFixed(2)} PLN
+                                        <span>Profit:</span> {product.profit.toFixed(2) + " " + crncy}
                                     </div>
                                 </div>
                             ))}
