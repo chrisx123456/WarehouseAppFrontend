@@ -1,11 +1,13 @@
 ﻿.categories-container {
     padding: 20px;
+
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    border-radius: 4px;
 }
 
 th, td {
@@ -19,6 +21,7 @@ th, td {
     /*overflow: hidden;*/ /* Zapobiega "wylewaniu się" tekstu */
     text-overflow: ellipsis; /* Dodaje elipsę (...) */
     white-space: nowrap; /* Zapobiega łamaniu wierszy w komórce */
+
 }
 
 th {

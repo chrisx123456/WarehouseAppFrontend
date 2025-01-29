@@ -1,73 +1,77 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../ApiContext';
+import { v4 as uuidv4 } from 'uuid';
 import '../GeneralStyles.css';
 import './SalesStyles.css';
 
 interface Sale {
-    productId: string;
+    id: string;
+    tradeName: string;
     quantity: number;
     amountPaid: number;
     profit: number;
     dateSaled: string;
     series: string;
-    userId: number;
+    ean: string;
+    userFullName: string;
+}
+interface SalesSearchParams {
+    series: string | undefined;
+    ean: string | undefined;
+    dateFrom: string | undefined;
+    dateTo: string | undefined;
+    fullName: string | undefined
 }
 
 interface SalesStats {
-    totalSales: number;
     totalRevenue: number;
     averageSale: number;
     totalTransactions: number;
+}
+interface ErrorResponse {
+    Message?: string;
 }
 
 const Sales: React.FC = () => {
     const [filteredSales, setFilteredSales] = useState<Sale[]>([]);
     const [stats, setStats] = useState<SalesStats>({
-        totalSales: 0,
         totalRevenue: 0,
         averageSale: 0,
         totalTransactions: 0
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [filters, setFilters] = useState({
-        searchTerm: '',
-        userId: '',
-        startDate: '',
-        endDate: ''
-    });
     const { baseUrl } = useApi();
+
+    const [seriesSearch, setSeriesSearch] = useState<string | undefined>(undefined);
+    const [eanSearch, setEanSearch] = useState<string | undefined>(undefined);
+    const [dateFromSearch, setDateFromSearch] = useState<string | undefined>(undefined);
+    const [dateToSearch, setDateToSearch] = useState<string | undefined>(undefined);
+    const [fullNameSearch, setFullNameSearch] = useState<string | undefined>(undefined);
+    const crncy: string | null = localStorage.getItem('currency')
 
     useEffect(() => {
         const fetchSales = async () => {
             try {
                 setLoading(true);
                 const url = `${baseUrl}/Sale`;
-                const params = new URLSearchParams();
 
-                if (filters.startDate) params.append('startDate', filters.startDate);
-                if (filters.endDate) params.append('endDate', filters.endDate);
-                if (filters.searchTerm) params.append('searchTerm', filters.searchTerm);
-                if (filters.userId) {
-                    const userId = Number(filters.userId);
-                    if (!isNaN(userId)) params.append('userId', userId.toString());
-                }
-
-                const response = await fetch(`${url}?${params.toString()}`, {
+                const response = await fetch(`${url}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
                     },
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to fetch sales');
+                    const errorData = await response.json() as ErrorResponse;
+                    throw new Error(errorData.Message || 'Failed to fetch sales');
                 }
 
-                const data = await response.json();
-                const salesData = Array.isArray(data) ? data : [data];
-                setFilteredSales(salesData);
-                calculateStats(salesData);
+                const saleData = await response.json().then(data =>
+                    data.map((sale: Sale) => ({ ...sale, id: uuidv4() }))
+                ) as Sale[];
+                setFilteredSales(saleData);
+                calculateStats(saleData);
 
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -77,99 +81,132 @@ const Sales: React.FC = () => {
         };
 
         fetchSales();
-    }, [baseUrl, filters]);
+    }, [baseUrl]);
 
+    const fetchSearch = async (searchParams: SalesSearchParams) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const query = new URLSearchParams();
+            if (searchParams.series) query.append('series', searchParams.series);
+            if (searchParams.ean) query.append('ean', searchParams.ean);
+            if (searchParams.dateFrom) query.append('dateFrom', searchParams.dateFrom);
+            if (searchParams.dateTo) query.append('dateTo', searchParams.dateTo);
+            if (searchParams.fullName) query.append('fullName', searchParams.fullName);
+
+            const url = `${baseUrl}/Sale/salesFullData/search?${query.toString()}`;
+
+
+            const salesResponse = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`
+                },
+            });
+            if (!salesResponse.ok) {
+                throw new Error((await salesResponse.json() as ErrorResponse).Message ?? "Error searching sales")
+            }
+            const saleData = await salesResponse.json().then(data =>
+                data.map((sale: Sale) => ({ ...sale, id: uuidv4() }))
+            ) as Sale[];
+            setFilteredSales(saleData);
+
+        }
+        catch (err) {
+            setError(err instanceof Error ? err.message : "Error searching sales");
+        }
+        finally {
+            setLoading(false);
+        }
+
+    }
     const calculateStats = (salesData: Sale[]) => {
-        const totalSales = salesData.reduce((sum, sale) => sum + sale.quantity, 0);
-        const totalRevenue = salesData.reduce((sum, sale) => sum + sale.amountPaid, 0);
+        const totalRevenue = salesData.reduce((sum, sale) => sum + sale.profit, 0);
         const totalTransactions = salesData.length;
         const averageSale = totalTransactions > 0 ? totalRevenue / totalTransactions : 0;
 
         setStats({
-            totalSales,
             totalRevenue: parseFloat(totalRevenue.toFixed(2)),
             averageSale: parseFloat(averageSale.toFixed(2)),
             totalTransactions
         });
     };
-
-    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFilters({
-            ...filters,
-            [e.target.name]: e.target.value
-        });
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const searchParams: SalesSearchParams = {
+            series: seriesSearch,
+            ean: eanSearch,
+            dateFrom: dateFromSearch,
+            dateTo: dateToSearch,
+            fullName: fullNameSearch
+        };
+        fetchSearch(searchParams); // Przekaż *aktualne* parametry
     };
 
     if (loading) {
-        return <div className="loading">Ładowanie danych sprzedaży...</div>;
-    }
-
-    if (error) {
-        return <div className="error-message">{error}</div>;
+        return <div className="loading">Loading data...</div>;
     }
 
     return (
         <div className="data-container">
-            <h1>Historia Sprzedaży</h1>
-
+            <h1>Sales history</h1>
+            {error && <div className="error-message">{error}</div>}
             <div className="filters-container">
-                <div className="filter-group">
-                    <label>Okres:</label>
-                    <input
-                        type="date"
-                        name="startDate"
-                        value={filters.startDate}
-                        onChange={handleFilterChange}
-                        max={filters.endDate}
-                    />
-                    <span>-</span>
-                    <input
-                        type="date"
-                        name="endDate"
-                        value={filters.endDate}
-                        onChange={handleFilterChange}
-                        min={filters.startDate}
-                    />
-                </div>
-
-                <div className="filter-group">
-                    <label>Wyszukaj:</label>
-                    <input
-                        type="text"
-                        name="searchTerm"
-                        placeholder="Produkt lub seria..."
-                        value={filters.searchTerm}
-                        onChange={handleFilterChange}
-                    />
-                </div>
-
-                <div className="filter-group">
-                    <label>Użytkownik:</label>
-                    <input
-                        type="number"
-                        name="userId"
-                        placeholder="ID użytkownika..."
-                        value={filters.userId}
-                        onChange={handleFilterChange}
-                    />
+                <div className="search-form">
+                    <form onSubmit={handleSearchSubmit}>
+                        <input
+                            type="text"
+                            placeholder="Full Name"
+                            value={fullNameSearch}
+                            onChange={(e) => setFullNameSearch(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="Series"
+                            value={seriesSearch}
+                            onChange={(e) => setSeriesSearch(e.target.value)}
+                        />
+                        <input
+                            type="text"
+                            placeholder="EAN"
+                            value={eanSearch}
+                            onChange={(e) => setEanSearch(e.target.value)}
+                        />
+                        <div className="date-input-group">
+                            <label htmlFor="dateFrom">Date from</label>
+                            <input
+                                id="dateFrom"
+                                type="date"
+                                value={dateFromSearch}
+                                onChange={(e) => setDateFromSearch(e.target.value)}
+                            />
+                        </div>
+                        <div className="date-input-group">
+                            <label htmlFor="dateTo">Date to</label>
+                            <input
+                                id="dateTo"
+                                type="date"
+                                value={dateToSearch}
+                                onChange={(e) => setDateToSearch(e.target.value)}
+                            />
+                        </div>
+                        <button type="submit">Search</button>
+                    </form>
                 </div>
             </div>
 
             <div className="stats-grid">
                 <div className="stat-card">
-                    <h3>Łączna sprzedaż</h3>
-                    <div className="stat-value">{stats.totalSales} szt.</div>
+                    <h3>Total income</h3>
+                    <div className="stat-value">{stats.totalRevenue + " " + crncy}</div>
                 </div>
                 <div className="stat-card">
-                    <h3>Przychód całkowity</h3>
-                    <div className="stat-value">${stats.totalRevenue}</div>
+                    <h3>Average sale</h3>
+                    <div className="stat-value">${stats.averageSale + " " + crncy}</div>
                 </div>
                 <div className="stat-card">
-                    <h3>Średnia transakcja</h3>
-                    <div className="stat-value">${stats.averageSale}</div>
-                </div>
-                <div className="stat-card">
-                    <h3>Liczba transakcji</h3>
+                    <h3>No. of transactions</h3>
                     <div className="stat-value">{stats.totalTransactions}</div>
                 </div>
             </div>
@@ -178,30 +215,34 @@ const Sales: React.FC = () => {
                 <table className="sales-table">
                     <thead>
                         <tr>
-                            <th>Produkt</th>
-                            <th>Ilość</th>
-                            <th>Kwota</th>
-                            <th>Data</th>
-                            <th>Seria</th>
-                            <th>Użytkownik</th>
+                            <th>Trade Name</th>
+                            <th>EAN</th>
+                            <th>Quantity</th>
+                            <th>Amount paid</th>
+                            <th>Profit</th>
+                            <th>Series</th>
+                            <th>Date</th>
+                            <th>Employee</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredSales.map((sale) => (
-                            <tr key={`${sale.productId}-${sale.series}-${sale.dateSaled}`}>
-                                <td>{sale.productId}</td>
+                            <tr key={sale.id}>
+                                <td>{sale.tradeName}</td>
+                                <td>{sale.ean}</td>
                                 <td>{sale.quantity}</td>
                                 <td>${sale.amountPaid.toFixed(2)}</td>
-                                <td>{new Date(sale.dateSaled).toLocaleDateString()}</td>
+                                <td>${sale.profit.toFixed(2)}</td>
                                 <td>{sale.series}</td>
-                                <td>{sale.userId}</td>
+                                <td>{new Date(sale.dateSaled).toLocaleDateString('pl-PL')}</td>
+                                <td>{sale.userFullName}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
 
                 {filteredSales.length === 0 && (
-                    <div className="no-results">Brak wyników dla wybranych filtrów</div>
+                    <div className="no-results">No results</div>
                 )}
             </div>
         </div>

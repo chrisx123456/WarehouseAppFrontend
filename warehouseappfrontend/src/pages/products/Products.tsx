@@ -145,7 +145,7 @@ const Products: React.FC = () => {
     const handleSaveEditProduct = async () => {
         if (!editingProduct) return;
         try {
-            const changes: { description?: string; price?: number | null | undefined } = {};
+            const changes: { description?: string; price?: number} = {};
             const originalProduct = products.find(p => p.ean === editingProduct.ean);
             if (!originalProduct) return
             if (editingProduct.description !== originalProduct.description) {
@@ -286,7 +286,10 @@ const Products: React.FC = () => {
                                 />
                             </td>
                             <td>
-                                <select value={newProduct.unitType} onChange={(e) => setNewProduct({ ...newProduct, unitType: parseInt(e.target.value) })}>
+                                <select value={newProduct.unitType} onChange={(e) => {
+                                    console.log(e.target.value);
+                                    setNewProduct({ ...newProduct, unitType: parseInt(e.target.value) })
+                                }}>
                                     {Object.entries(unitTypeMap).map(([key, value]) => (
                                         <option key={key} value={key}>{value}</option>
                                     ))}
@@ -319,11 +322,11 @@ const Products: React.FC = () => {
                                     if (!newProduct.manufacturerName) newErrors += "Choose manufacturer#";
                                     if (!newProduct.name.trim()) newErrors += "Name is required#";
                                     if (!newProduct.categoryName) newErrors += "Choose category#";
-                                    if (!newProduct.unitType) newErrors += "Choose unit type#";
+                                    if (isNaN(newProduct.unitType)) newErrors += "Choose unit type#";
                                     if (!/^(?:[1-9]\d*|0(?=\.\d{1,2}$)|[1-9]\d*\.\d{1,2}|0\.\d{1,2}|[1-9]\d*)$/.test(newProduct.price ? newProduct.price.toString() : "")) newErrors += ("Price paid must be an integer or decimal with two decimal places#")
                                     if (!/^(\d{8}|\d{13})$/.test(newProduct.ean)) newErrors += ("EAN must be 13 or 8 long and digits only#");
 
-                                    if (newErrors.length > 18) {
+                                    if (newErrors.length > 20) {
                                         setError(newErrors);
                                     } else {
                                         setError(null);

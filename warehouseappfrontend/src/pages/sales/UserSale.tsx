@@ -9,6 +9,13 @@ import '../GeneralStyles.css';
 import './UserSaleStyles.css'
 import { Product } from '../../types/Product';
 
+interface SalesSearchParams {
+    series: string | undefined;
+    ean: string | undefined;
+    dateFrom: string | undefined;
+    dateTo: string | undefined;
+}
+
 interface Sale {
     id: string;
     tradeName: string;
@@ -61,6 +68,61 @@ const UserSales: React.FC = () => {
     const [selectValues, setSelectValues] = useState<(SingleValue<SelectOption> | null)[]>([]);
 
     const { baseUrl } = useApi();
+
+    const [seriesSearch, setSeriesSearch] = useState<string | undefined>(undefined);
+    const [eanSearch, setEanSearch] = useState<string | undefined>(undefined);
+    const [dateFromSearch, setDateFromSearch] = useState<string | undefined>(undefined);
+    const [dateToSearch, setDateToSearch] = useState<string | undefined>(undefined);
+
+    const crncy: string | null = localStorage.getItem('currency')
+    const fetchDataSerach = async (searchParams: SalesSearchParams) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const query = new URLSearchParams();
+            if (searchParams.series) query.append('series', searchParams.series);
+            if (searchParams.ean) query.append('ean', searchParams.ean);
+            if (searchParams.dateFrom) query.append('dateFrom', searchParams.dateFrom);
+            if (searchParams.dateTo) query.append('dateTo', searchParams.dateTo);
+
+            const url = `${baseUrl}/Sale/userSales/search?${query.toString()}`;
+
+
+            const salesResponse = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`
+                },
+            });
+            if (!salesResponse.ok) {
+                throw new Error((await salesResponse.json() as ErrorResponse).Message ?? "Error searching sales")
+            }
+            const saleData = await salesResponse.json().then(data =>
+                data.map((sale: Sale) => ({ ...sale, id: uuidv4() }))
+            ) as Sale[];
+            setSales(saleData);
+
+        }
+        catch (err) {
+            setError(err instanceof Error ? err.message : "Error searching sales");
+        }
+        finally {
+            setLoading(false);
+        }
+
+    }
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const searchParams: SalesSearchParams = {
+            series: seriesSearch,
+            ean: eanSearch,
+            dateFrom: dateFromSearch,
+            dateTo: dateToSearch
+        };
+        fetchDataSerach(searchParams); // Przekaż *aktualne* parametry
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -225,11 +287,46 @@ const UserSales: React.FC = () => {
 
             {loading && <div>Loading...</div>}
             {error && <div className="error-message">{error}</div>}
-
+            <div className="search-form">
+                <form onSubmit={handleSearchSubmit}>
+                    <input
+                        type="text"
+                        placeholder="Series"
+                        value={seriesSearch}
+                        onChange={(e) => setSeriesSearch(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        placeholder="EAN"
+                        value={eanSearch}
+                        onChange={(e) => setEanSearch(e.target.value)}
+                    />
+                    <div className="date-input-group">
+                        <label htmlFor="dateFrom">Date from</label>
+                        <input
+                            id="dateFrom"
+                            type="date"
+                            value={dateFromSearch}
+                            onChange={(e) => setDateFromSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="date-input-group">
+                        <label htmlFor="dateTo">Date to</label>
+                        <input
+                            id="dateTo"
+                            type="date"
+                            value={dateToSearch}
+                            onChange={(e) => setDateToSearch(e.target.value)}
+                        />
+                    </div>
+                    <button type="submit">Search</button>
+                </form>
+            </div>
             <table>
                 <thead>
                     <tr>
                         <th>Trade Name</th>
+                        <th>EAN</th>
                         <th>Quantity</th>
                         <th>Amount Paid</th>
                         <th>Profit</th>
@@ -241,11 +338,12 @@ const UserSales: React.FC = () => {
                     {sales.map((sale) => (
                         <tr key={sale.id}>
                             <td>{sale.tradeName}</td>
+                            <td>{sale.ean}</td>
                             <td>{sale.quantity}</td>
-                            <td>{sale.amountPaid.toFixed(2)}</td>
-                            <td>{sale.profit}</td>
+                            <td>{sale.amountPaid.toFixed(2) + " " + crncy}</td>
+                            <td>{sale.profit + " " + crncy}</td>
                             <td>{sale.series}</td>
-                            <td>{new Date(sale.dateSaled).toLocaleDateString()}</td>
+                            <td>{new Date(sale.dateSaled).toLocaleDateString('pl-PL')}</td>
                         </tr>
                     ))}
                 </tbody>

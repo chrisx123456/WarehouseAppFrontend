@@ -1,4 +1,4 @@
-.US-NewSaleModalDiv{
+﻿.US-NewSaleModalDiv{
     display: flex;
     justify-content: center;
     align-content: center;
@@ -77,3 +77,89 @@
     justify-content: flex-end;
   }
 
+.search-form {
+    padding: 12px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+}
+
+    .search-form form {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    .search-form input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+        width: 200px;
+        box-sizing: border-box;
+        transition: border-color 0.3s ease;
+    }
+
+        .search-form input[type="date"] {
+            padding: 6px;
+        }
+
+        .search-form input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+
+    .search-form button {
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        height: 38px;
+    }
+
+        .search-form button:hover {
+            background-color: #0056b3;
+        }
+.date-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+    .date-input-group label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-left: 2px;
+        font-weight: 500;
+    }
+
+.search-form input[type="date"] {
+    padding: 6px 8px;
+    height: 38px;
+}
+/* Responsywność */
+/*@media (max-width: 768px) {
+    .search-form form {
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .search-form input {
+        width: 100%;
+    }
+
+    .search-form button {
+        width: 100%;
+        height: auto;
+    }
+    .date-input-group {
+        width: 100%;
+    }
+}*/
