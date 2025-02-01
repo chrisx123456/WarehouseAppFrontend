@@ -133,21 +133,21 @@ const UserPanel: React.FC = () => {
         fetchUserData();
     }, [baseUrl]);
 
-    if (loading) return <div>Ładowanie danych użytkownika...</div>;
+    if (loading) return <div>Loading user data...</div>;
     //if (error) return <div>Błąd: {error}</div>;
-    if (!user) return <div>Brak danych użytkownika.</div>;
+    if (!user) return <div>No data.</div>;
 
     return (
         <div className="user-details">
-            <h2>Dane Użytkownika</h2>
+            <h2>User data</h2>
             {error && <div className="error-message">{error}</div>} {/* Używamy istniejącego stanu error */}
             <div className="user-info">
                 <div className="info-item">
-                    <span className="label">Imię:</span>
+                    <span className="label">Name:</span>
                     <span className="value">{user.firstName}</span>
                 </div>
                 <div className="info-item">
-                    <span className="label">Nazwisko:</span>
+                    <span className="label">Surname:</span>
                     <span className="value">{user.lastName}</span>
                 </div>
                 <div className="info-item">
@@ -155,7 +155,7 @@ const UserPanel: React.FC = () => {
                     <span className="value">{user.email}</span>
                 </div>
                 <div className="info-item">
-                    <span className="label">Rola:</span>
+                    <span className="label">Role:</span>
                     <span className="value">{user.roleName}</span>
                 </div>
                 {/* Możesz dodać więcej pól w ten sam sposób */}
@@ -163,26 +163,26 @@ const UserPanel: React.FC = () => {
                     {changeError && <div className="error-message">{changeError}</div>}
 
                     {!changingEmail && !changingPassword && (
-                        <button onClick={() => setChangingEmail(true)}>Zmień Email</button>
+                        <button onClick={() => setChangingEmail(true)}>Change email</button>
                     )}
                     {changingEmail && (
                         <div className="change-form">
                             <input type="email" placeholder="New Email" value={newEmail} onChange={e => setNewEmail(e.target.value)} />
                             <input type="email" placeholder="Confirm New Email" value={confirmNewEmail} onChange={e => setConfirmNewEmail(e.target.value)} />
-                            <button onClick={handleEmailChange}>Zapisz Email</button>
-                            <button onClick={() => { setChangingEmail(false); setNewEmail(""); setConfirmNewEmail(""); setChangeError(null) }}>Anuluj</button>
+                            <button onClick={handleEmailChange}>Save Email</button>
+                            <button onClick={() => { setChangingEmail(false); setNewEmail(""); setConfirmNewEmail(""); setChangeError(null) }}>Cancel</button>
                         </div>
                     )}
 
                     {!changingPassword && !changingEmail && (
-                        <button onClick={() => setChangingPassword(true)}>Zmień Hasło</button>
+                        <button onClick={() => setChangingPassword(true)}>Change password</button>
                     )}
                     {changingPassword && (
                         <div className="change-form">
                             <input type="password" placeholder="New Password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
                             <input type="password" placeholder="Confirm New Password" value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} />
-                            <button onClick={handlePasswordChange}>Zapisz Hasło</button>
-                            <button onClick={() => { setChangingPassword(false); setNewPassword(""); setConfirmNewPassword(""); setChangeError(null) }}>Anuluj</button>
+                            <button onClick={handlePasswordChange}>Save password</button>
+                            <button onClick={() => { setChangingPassword(false); setNewPassword(""); setConfirmNewPassword(""); setChangeError(null) }}>Cancel</button>
                         </div>
                     )}
                 </div>

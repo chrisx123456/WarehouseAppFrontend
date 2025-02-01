@@ -3,7 +3,7 @@ import { useApi } from '../../ApiContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTimes, faTrash, faEdit, faPlus } from '@fortawesome/free-solid-svg-icons';
 import '../GeneralStyles.css';
-
+import './AdminPageStyles.css'
 interface User {
     firstName: string;
     lastName: string;
@@ -32,6 +32,18 @@ const Users: React.FC = () => {
     const [isAddingNewUser, setIsAddingNewUser] = useState(false); // Stan do kontrolowania widoczności wiersza dodawania
     const availableRoles = ['Admin', 'Manager', 'User']; // Define available roles
     const [editingUser, setEditingUser] = useState<UserUpdateData | null>(null);
+
+
+    const [showCurrencyInput, setShowCurrencyInput] = useState(false);
+    const [currencyValue, setCurrencyValue] = useState('');
+    const [showDeleteSeriesInput, setShowDeleteSeriesInput] = useState(false);
+    const [stockSeriesValue, setStockSeriesValue] = useState('');
+
+    const [confirmDelStockD, setConfirmDelStockD] = useState(false);
+    const [confirmDelSales, setConfirmDelSales] = useState(false);
+
+    const [showDeleteProductInput, setShowDeleteProductInput] = useState(false);
+    const [eanValue, setEanValue] = useState('');
 
 
     const fetchUsers = useCallback(async () => {
@@ -166,7 +178,7 @@ const Users: React.FC = () => {
             updatedFields.roleName = editingUser.roleName;
         }
 
-        if (editingUser.password) { // Sprawdzamy, czy Password ma jakąkolwiek wartość
+        if (editingUser.password) { 
             updatedFields.password = editingUser.password;
         }
 
@@ -192,11 +204,6 @@ const Users: React.FC = () => {
                 const errorData = await response.json() as ErrorResponse;
                 throw new Error(`Error updating user: ${response.status} - ${errorData.Message || 'No details'}`);
             }
-            //users.map(user => {
-            //    console.log(user.email.concat(" ").concat(editingUser.oldEmail));
-            //    console.log(user.email === editingUser.oldEmail)
-            //}
-            //);
 
             setUsers(prevUsers => prevUsers.map(user =>
                 (user.email === editingUser.oldEmail)
@@ -218,19 +225,184 @@ const Users: React.FC = () => {
             }
         }
     };
+    const handleConfirmCurrency = async () => {
+        setShowCurrencyInput(false);
+        try {
+            const response = await fetch(`${baseUrl}/Admin/currency/${currencyValue}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+            });
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(`Error updating user: ${response.status} - ${errorData.Message || 'No details'}`);
+            }
+            localStorage.setItem('currency', currencyValue);
+            setCurrencyValue('');
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Error occured.");
+            }
+        }
+    }
+    const handleConfirmDeleteStock = async () => {
+        setShowDeleteSeriesInput(false);
+        try {
+            const response = await fetch(`${baseUrl}/Admin/deleteBySeries/${stockSeriesValue}?stockDelivery=${confirmDelStockD}&sales=${confirmDelSales}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+            });
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(`Error deleting by series: ${response.status} - ${errorData.Message || 'No details'}`);
+            }
+            setError(null);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Error occured.");
+            }
+        }
+    }
+    const handleDeleteProduct = async () => {
+        setShowDeleteProductInput(false);
+        try {
+            const response = await fetch(`${baseUrl}/Admin/deleteProduct/${eanValue}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('jwtToken')}`,
+                },
+            });
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(`Error deleting by series: ${response.status} - ${errorData.Message || 'No details'}`);
+            }
+            setError(null);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Error occured.");
+            }
+        }
+    }
 
     if (loading) {
         return <div>Loading...</div>;
     }
 
     return (
-        <div className="users-container">
-            <h1>Użytkownicy</h1>
-
+        <div className="page-container">
             {error && <div className="error-message">{error}</div>}
+            <div className="admin-section">
+                <h1>Admin tools</h1>
 
-            {!loading && users.length === 0 && !error && <div>Brak użytkowników.</div>}
-            <button className="add-button" onClick={handleAddUserClick}><FontAwesomeIcon icon={faPlus} /> Dodaj użytkownika</button>
+                <div className="admin-tool">
+                    <button onClick={() => setShowCurrencyInput(true)}>
+                        Change currency
+                    </button>
+                    {showCurrencyInput && (
+                        <div className="input-with-buttons">
+                            <input
+                                type="text"
+                                value={currencyValue}
+                                onChange={(e) => setCurrencyValue(e.target.value)}
+                                placeholder="Enter new currency (e.g. USD)"
+                            />
+                            <button className="save-button" onClick={handleConfirmCurrency}>
+                                <FontAwesomeIcon icon={faCheck} />
+                            </button>
+                            <button className="cancel-button" onClick={() => {
+                                setShowCurrencyInput(false);
+                                setCurrencyValue('');
+                            }}>
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+                <div className="admin-tool">
+                    <button onClick={() => setShowDeleteSeriesInput(true)}>
+                        Delete product from stock by series
+                    </button>
+                    {showDeleteSeriesInput && (
+                        <div className="delete-product-section">
+                            <input
+                                type="text"
+                                value={stockSeriesValue}
+                                onChange={(e) => setStockSeriesValue(e.target.value)}
+                                placeholder="Enter series"
+                            />
+                            <div className="checkbox-group">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={confirmDelStockD}
+                                        onChange={(e) => setConfirmDelStockD(e.target.checked)}
+                                    />
+                                    Delete from StockDelivery(Historical data)
+                                </label>
+
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={confirmDelSales}
+                                        onChange={(e) => setConfirmDelSales(e.target.checked)}
+                                    />
+                                    Delete from sales
+                                </label>
+                            </div>
+                            <button className="save-button" onClick={handleConfirmDeleteStock}>
+                                <FontAwesomeIcon icon={faCheck} />
+                            </button>
+                            <button className="cancel-button" onClick={() => {
+                                setShowDeleteSeriesInput(false);
+                                setStockSeriesValue('');
+                            }}>
+                                <FontAwesomeIcon icon={faTimes} />
+                            </button>
+                        </div>
+                    )}
+                    <div className="admin-tool">
+                        <button onClick={() => setShowDeleteProductInput(true)}>
+                            Delete product and all related data
+                        </button>
+                        {showDeleteProductInput && 
+                            <div className="input-with-buttons">
+                                <p>Deleting product this way means that -<br/>
+                                   - related records in Sales, Stock and Stock Delivery will be also deleted</p>
+                                <input
+                                    type="text"
+                                    value={eanValue}
+                                    onChange={(e) => setEanValue(e.target.value)}
+                                    placeholder="Ean"
+                                />
+                                <button className="save-button" onClick={handleDeleteProduct}>
+                                    <FontAwesomeIcon icon={faCheck} />
+                                </button>
+                                <button className="cancel-button" onClick={() => {
+                                    setShowDeleteProductInput(false);
+                                    setEanValue('');
+                                }}>
+                                    <FontAwesomeIcon icon={faTimes} />
+                                </button>
+                            </div>    
+                        }
+                    </div>
+                </div>
+            </div>
+            <h1>Users - Admin</h1>
+            {!loading && users.length === 0 && !error && <div>No users.</div>}
+            <button className="add-button" onClick={handleAddUserClick}><FontAwesomeIcon icon={faPlus} /> Add user</button>
 
             {!loading && users.length > 0 && (
                 <table>
@@ -244,7 +416,7 @@ const Users: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {isAddingNewUser && newUser && ( // Warunkowe renderowanie wiersza dodawania
+                        {isAddingNewUser && newUser && ( 
                             <tr>
                                 <td><input type="text" value={newUser.firstName} onChange={(e) => setNewUser({ ...newUser, firstName: e.target.value })} /></td>
                                 <td><input type="text" value={newUser.lastName} onChange={(e) => setNewUser({ ...newUser, lastName: e.target.value })} /></td>

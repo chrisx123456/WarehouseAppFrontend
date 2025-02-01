@@ -141,7 +141,7 @@ const Sales: React.FC = () => {
             dateTo: dateToSearch,
             fullName: fullNameSearch
         };
-        fetchSearch(searchParams); // Przekaż *aktualne* parametry
+        fetchSearch(searchParams);
     };
 
     if (loading) {
@@ -203,7 +203,7 @@ const Sales: React.FC = () => {
                 </div>
                 <div className="stat-card">
                     <h3>Average sale</h3>
-                    <div className="stat-value">${stats.averageSale + " " + crncy}</div>
+                    <div className="stat-value">{stats.averageSale + " " + crncy}</div>
                 </div>
                 <div className="stat-card">
                     <h3>No. of transactions</h3>
@@ -231,8 +231,8 @@ const Sales: React.FC = () => {
                                 <td>{sale.tradeName}</td>
                                 <td>{sale.ean}</td>
                                 <td>{sale.quantity}</td>
-                                <td>${sale.amountPaid.toFixed(2)}</td>
-                                <td>${sale.profit.toFixed(2)}</td>
+                                <td>{sale.amountPaid.toFixed(2) + " " + crncy}</td>
+                                <td>{sale.profit.toFixed(2) + " " + crncy}</td>
                                 <td>{sale.series}</td>
                                 <td>{new Date(sale.dateSaled).toLocaleDateString('pl-PL')}</td>
                                 <td>{sale.userFullName}</td>

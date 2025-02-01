@@ -8,7 +8,6 @@ import Select from 'react-select'; // Importujemy react-select
 import '../GeneralStyles.css';
 import './StockStyles.css';
 import { Product } from '../../types/Product'
-import { parse } from 'uuid';
 interface Stock {
     tradeName: string;
     series: string;
