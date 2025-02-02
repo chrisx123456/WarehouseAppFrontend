@@ -156,10 +156,10 @@ const UserSales: React.FC = () => {
         fetchData();
     }, [baseUrl]);
 
-    const getProductDetails = (ean: string) => {
-        const product = products.find(p => p.ean === ean);
-        return product ? `${product.tradeName} (${ean})` : ean;
-    };
+    //const getProductDetails = (ean: string) => {
+    //    const product = products.find(p => p.ean === ean);
+    //    return product ? `${product.tradeName} (${ean})` : ean;
+    //};
 
     const handleAddSaleItem = () => {
         setSaleItems([...saleItems, { id: uuidv4(), ean: '', count: 0 }]);
