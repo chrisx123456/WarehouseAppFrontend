@@ -144,12 +144,11 @@ const App: React.FC = () => {
                         },
                     });
 
-                    if (!currencyResponse.ok) {
-                        throw new Error(`Error fetching currency`);
+                    if (currencyResponse.ok) {
+                        const currency = await currencyResponse.json() as Currency;
+                        localStorage.setItem('currency', currency.currency);
                     }
-                    const currency = await currencyResponse.json() as Currency;
 
-                    localStorage.setItem('currency', currency.currency);
 
                     if (roleResponse.ok) {
                         const roleData = await roleResponse.json();
