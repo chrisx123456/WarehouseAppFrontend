@@ -232,6 +232,8 @@ const UserSales: React.FC = () => {
             setIsNewSaleModalOpen(false);
             setIsSummaryModalOpen(true);
         } catch (err) {
+            setIsNewSaleModalOpen(false);
+            setSaleItems([]);
             setError(err instanceof Error ? err.message : 'Failed to create sale');
         }
     };
@@ -245,11 +247,15 @@ const UserSales: React.FC = () => {
                 },
             });
 
-            if (!response.ok) throw new Error('Confirmation failed');
+            if (!response.ok) {
+                const errorData = await response.json() as ErrorResponse;
+                throw new Error(errorData?.Message ?? 'Confirmation failed');
+            }
 
             setIsSummaryModalOpen(false);
             window.location.reload();
         } catch (err) {
+            setIsSummaryModalOpen(false);
             setError(err instanceof Error ? err.message : 'Confirmation failed');
         }
     };
