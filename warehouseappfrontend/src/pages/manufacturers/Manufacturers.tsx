@@ -184,7 +184,10 @@ const Manufacturers: React.FC = () => {
                                 <input
                                     type="text"
                                     value={newManufacturer.name}
-                                    onChange={(e) => setNewManufacturer({ ...newManufacturer, name: e.target.value })}
+                                    onChange={(e) => {
+                                        if (!/^[^a-zA-Z0-9\s]*$|^$/.test(e.target.value) || e.target.value === "")
+                                            setNewManufacturer({ ...newManufacturer, name: e.target.value })
+                                    }}
                                 />
                             </td>
                             <td>

@@ -19,9 +19,10 @@ const Categories: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const { baseUrl } = useApi();
     const [newCategory, setNewCategory] = useState<Category | null>(null);
 
+
+    const { baseUrl } = useApi();
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -177,7 +178,7 @@ const Categories: React.FC = () => {
     return (
         <div className="categories-container">
             <h1>Categories</h1>
-            {error && <div className="error-message">{error}</div>} {/* Display errors above content */}
+            {error && <div className="error-message">{error}</div>} 
             {canAddVal && <button className="add-button" onClick={handleAddCategory}> <FontAwesomeIcon icon={faPlus} /> Add new category</button>}
             <table>
                 <thead>
