@@ -88,10 +88,10 @@ const Manufacturers: React.FC = () => {
                 const errorData = await response.json() as ErrorResponse;
                 throw new Error(`Error updating: ${response.status} - ${errorData.Message || 'No details'}`);
             }
-
             setManufacturers(manufacturers.map(m =>
                 m.name === oldName ? { ...m, name: tempManufacturerName, isEditing: false } : m
             ));
+
             setEditingManufacturerName(null);
             setTempManufacturerName('');
         } catch (err: unknown) {
@@ -237,7 +237,7 @@ const Manufacturers: React.FC = () => {
                                 <td>
                                     {editingManufacturerName === manufacturer.name ? (
                                         <>
-                                            <button className="save-button" onClick={() => handleEditSave(manufacturer.oldName as string, manufacturer.name)}>
+                                            <button className="save-button" onClick={() => handleEditSave(manufacturer.name, tempManufacturerName)}>
                                                 <FontAwesomeIcon icon={faCheck} />
                                             </button>
                                             <button className="cancel-button" onClick={() => handleEdittingCancel()}>
