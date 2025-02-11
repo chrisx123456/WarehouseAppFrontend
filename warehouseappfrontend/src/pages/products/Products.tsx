@@ -42,6 +42,10 @@ const Products: React.FC = () => {
     const [selectedDescriptionView, setSelectedDescriptionView] = useState<string | null>(null);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+    const [searchOption, setSearchOption] = useState<"ean" | "tradeName">('tradeName');
+    const [searchTerm, setSearchTerm] = useState("")
+
+
     const crncy = localStorage.getItem('currency') as string;
 
     useEffect(() => {
@@ -184,7 +188,40 @@ const Products: React.FC = () => {
             }
         }
     };
+    const handleSearch = async () => {
+        if (searchTerm === "") {
+            window.location.reload();
+        }
 
+        try {
+            let searchQuery = baseUrl + "/Product/";
+            if (searchOption === "ean") {
+                if (!/^(\d{8}|\d{13})$/.test(searchTerm)) {
+                    throw new Error("EAN must be 13 or 8 long and digits only");
+                }
+                searchQuery += searchTerm;
+            } else {
+                searchQuery += "tradename/" + searchTerm;
+            }
+            console.log(searchQuery);
+            const response = await
+                fetch(searchQuery, { headers: { Authorization: `Bearer ${localStorage.getItem('jwtToken')}` } })
+
+            if (!response.ok) throw new Error(`Error fetching products: ${(await response.json() as ErrorResponse).Message}`);
+
+            const product = await response.json() as Product;
+            const productsArr: Product[] = [];
+            productsArr.push(product)
+            setProducts(productsArr);
+        }
+        catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "An unexpected error occurred.");
+        }
+        finally {
+            setSearchTerm("");
+        }
+
+    }
     if (loading) return <div>Loading...</div>;
 
     return (
@@ -205,6 +242,23 @@ const Products: React.FC = () => {
                     <FontAwesomeIcon icon={faPlus} /> Add Product
                 </button>
             )}
+            <div className="search-bar">
+                <input
+                    type='text'
+                    placeholder="Search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <select
+                    value={searchOption}
+                    onChange={(e) => setSearchOption(e.target.value as "ean" | "tradeName")}
+                >
+                    <option value="ean">EAN</option>
+                    <option value="tradeName">Trade name</option>
+                </select>
+                <button onClick={handleSearch}>Search</button>
+            </div>
+
             <table>
                 <thead>
                     <tr>

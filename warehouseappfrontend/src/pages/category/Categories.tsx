@@ -3,7 +3,7 @@ import { useApi } from '../../ApiContext';
 import '../GeneralStyles.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faCheck, faTimes, faPlus } from '@fortawesome/free-solid-svg-icons';
-
+import './CategoriesStyles.css'
 
 interface Category {
     name: string;
@@ -20,7 +20,7 @@ const Categories: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [newCategory, setNewCategory] = useState<Category | null>(null);
-
+    const [searchTerm, setSearchTerm] = useState("");
 
     const { baseUrl } = useApi();
 
@@ -103,6 +103,7 @@ const Categories: React.FC = () => {
                         : category
                 )
             );
+
         } catch (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message);
@@ -171,6 +172,15 @@ const Categories: React.FC = () => {
         setNewCategory(null);
     };
 
+    const handleSearch = () => {
+        if (searchTerm === "") {
+            window.location.reload();
+            return;
+        }
+        setCategories(categories.filter(cat => cat.name.toLowerCase().includes(searchTerm.toLowerCase())))
+        setSearchTerm("");
+    }
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -178,14 +188,23 @@ const Categories: React.FC = () => {
     return (
         <div className="categories-container">
             <h1>Categories</h1>
-            {error && <div className="error-message">{error}</div>} 
+            {error && <div className="error-message">{error}</div>}
+            <div className="search-container">
+                <input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                <button onClick={handleSearch}>Search</button>
+            </div>
             {canAddVal && <button className="add-button" onClick={handleAddCategory}> <FontAwesomeIcon icon={faPlus} /> Add new category</button>}
             <table>
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>VAT</th>
-                        {/*{canEditVal && canDeleteVal && <th>Akcje</th>}*/}
                     </tr>
                 </thead>
                 <tbody>

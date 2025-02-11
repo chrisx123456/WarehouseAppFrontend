@@ -24,7 +24,7 @@ const Manufacturers: React.FC = () => {
 
     const [editingManufacturerName, setEditingManufacturerName] = useState<string | null>(null);
     const [tempManufacturerName, setTempManufacturerName] = useState('');
-
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         const fetchManufacturers = async () => {
@@ -157,6 +157,15 @@ const Manufacturers: React.FC = () => {
 
     const handleCancelNewManufacturer = () => setNewManufacturer(null);
 
+    const handleSearch = () => {
+        if (searchTerm === "") {
+            window.location.reload();
+            return;
+        }
+        setManufacturers(manufacturers.filter(man => man.name.toLowerCase().includes(searchTerm.toLocaleLowerCase())))
+        setSearchTerm("");
+    }
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -165,6 +174,16 @@ const Manufacturers: React.FC = () => {
         <div className="manufacturers-container">
             {error && <div className="error-message">{error}</div>}
             <h1>Manufacturers</h1>
+            <div className="search-container">
+                <input
+                    type="text"
+                    placeholder="Search by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                <button onClick={handleSearch}>Search</button>
+            </div>
             {canAddVal && (
                 <button className="add-button" onClick={handleAddManufacturer}>
                     <FontAwesomeIcon icon={faPlus} /> Add Manufacturer

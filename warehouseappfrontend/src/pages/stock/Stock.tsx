@@ -98,8 +98,10 @@ const Instock: React.FC = () => {
                 const errorData = await stockResponse.json() as ErrorResponse;
                 throw new Error(`Error while fetching data: ${stockResponse.status} - ${errorData.Message || 'No details'}`);
             }
-            const data = await stockResponse.json() as Stock[];
+            const responseData = await stockResponse.json() as Stock[] | Stock;
+            const data: Stock[] = Array.isArray(responseData) ? responseData : [responseData];
             setStock(data);
+
             if (!productsResponse.ok) {
                 const errorData = await productsResponse.json() as ErrorResponse;
                 throw new Error(`Error while fetching data: ${productsResponse.status} - ${errorData.Message || 'No details'}`);
