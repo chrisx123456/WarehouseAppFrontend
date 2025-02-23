@@ -53,7 +53,7 @@ const Categories: React.FC = () => {
     }, [baseUrl]);
     const handleDelete = async (categoryName: string) => {
         try {
-            const response = await fetch(`${baseUrl}/Category/${categoryName}`, { // Używamy nazwy w URL
+            const response = await fetch(`${baseUrl}/Category/${categoryName}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`,
@@ -65,7 +65,7 @@ const Categories: React.FC = () => {
                 throw new Error(`Error while deleting: ${response.status} - ${errorData.Message || 'No details'}`);
             }
 
-            setCategories(categories.filter(category => category.name !== categoryName)); // Filtrujemy po nazwie
+            setCategories(categories.filter(category => category.name !== categoryName));
         } catch (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message);

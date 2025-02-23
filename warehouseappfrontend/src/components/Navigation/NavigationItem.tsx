@@ -23,7 +23,7 @@ const NavigationItem: React.FC<Props> = ({ item, userRole }) => {
             {item.children ? (
                 <>
                     <div className="nav-item-header" onClick={() => setIsOpen(!isOpen)}>
-                        <span className="nav-item-label">{item.label}</span> {/* Dodany span dla label */}
+                        <span className="nav-item-label">{item.label}</span> 
                         <span className="arrow">
                             {isOpen ? <FontAwesomeIcon icon={faChevronUp} /> : <FontAwesomeIcon icon={faChevronDown} />}
                         </span>
@@ -37,7 +37,7 @@ const NavigationItem: React.FC<Props> = ({ item, userRole }) => {
                     )}
                 </>
             ) : (
-                <Link to={item.path || "#"} className="nav-link"> {/* Dodana klasa dla linku */}
+                <Link to={item.path || "#"} className="nav-link"> 
                     {item.label}
                 </Link>
             )}

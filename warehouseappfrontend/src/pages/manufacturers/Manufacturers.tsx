@@ -124,8 +124,7 @@ const Manufacturers: React.FC = () => {
     }
 
     const handleSaveNewManufacturer = async () => {
-        //Wsm moze byc firma co ma w nazwie cyfry
-        if (!newManufacturer /*|| !/^[a-zA-Z\s]+$/.test(newManufacturer.name)*/) {
+        if (!newManufacturer || !/^[a-zA-Z\s]+$/.test(newManufacturer.name)) {
             setError("Name must contain only letters and spaces.");
             return;
         } 
@@ -144,8 +143,6 @@ const Manufacturers: React.FC = () => {
                 const errorData = await response.json() as ErrorResponse;
                 throw new Error(`Error creating: ${response.status} - ${errorData.Message || 'No details'}`);
             }
-
-            //const createdManufacturer = newManufacturer;
             setManufacturers([...manufacturers, { ...newManufacturer }]);
             setEditingManufacturerName(null);
             setTempManufacturerName('');
@@ -193,7 +190,6 @@ const Manufacturers: React.FC = () => {
                 <thead>
                     <tr>
                         <th>Name</th>
-                       {/* {canEditVal && canDeleteVal && <th>Actions</th>}*/}
                     </tr>
                 </thead>
                 <tbody>

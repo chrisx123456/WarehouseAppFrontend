@@ -226,7 +226,6 @@ const UserSales: React.FC = () => {
                 const errorData = await response.json() as ErrorResponse;
                 throw new Error(errorData?.Message || 'Failed to create sale');
             }
-
             const summary = await response.json();
             setSummaryData(summary);
             setIsNewSaleModalOpen(false);
@@ -452,7 +451,6 @@ const UserSales: React.FC = () => {
                             )}
                         </div>
                     ))}
-
                     <div className="modal-buttons">
                         <button type="submit" className="save-button">
                             <FontAwesomeIcon icon={faCheck} /> Submit
@@ -484,7 +482,6 @@ const UserSales: React.FC = () => {
                     <div className="pending-id">
                         Pending Sale ID: {summaryData?.pendingSaleId}
                     </div>
-
                     <div className="product-previews-container">
                         <div className="product-previews-scroll">
                             {summaryData?.productPreviews?.map((product, index) => (
@@ -515,7 +512,6 @@ const UserSales: React.FC = () => {
                             ))}
                         </div>
                     </div>
-
                     <div className="modal-buttons">
                         <button type="button" onClick={handleConfirmSale} className="save-button">
                             <FontAwesomeIcon icon={faCheck} /> Confirm

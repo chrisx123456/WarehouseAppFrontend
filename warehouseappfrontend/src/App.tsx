@@ -11,7 +11,7 @@ import AdminPage from './pages/account/AdminPage'
 import UserPage from './pages/account/UserPage'
 import Sales from './pages/sales/Sales'
 import UserSale from './pages/sales/UserSale'
-import { User } from './types/User'; // Upewnij się, że masz zdefiniowany typ User
+import { User } from './types/User'; 
 import './App.css';
 import { useApi } from './ApiContext';
 
@@ -93,8 +93,8 @@ const Login: React.FC<LoginProps> = ({ onLogin, initialError }) => {
                 console.error("Login error:", error);
                 setError(error.message);
             } else {
-                console.error("Login error:", error); // Logujemy cały obiekt błędu
-                setError("An error occured"); // Wyświetlamy ogólny komunikat
+                console.error("Login error:", error); 
+                setError("An error occured"); 
             }
 
         }
@@ -102,7 +102,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, initialError }) => {
 
     return (
         <div className="login-container">
-            <h2>Logowanie</h2>
+            <h2>Login</h2>
             {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit}>
                 <div className="input-group">
@@ -124,7 +124,7 @@ const App: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const { baseUrl } = useApi();
     const navigate = useNavigate();
-    const [loginError, setLoginError] = useState<string | null>(null); // Dodajemy stan dla błędu logowania
+    const [loginError, setLoginError] = useState<string | null>(null); 
 
     useEffect(() => {
         const fetchRole = async () => {
@@ -153,14 +153,14 @@ const App: React.FC = () => {
                     if (roleResponse.ok) {
                         const roleData = await roleResponse.json();
                         setUser({ role: roleData.role });
-                        setIsLoggedIn(true); // Ustawiamy isLoggedIn na true, gdy rola zostanie pobrana
+                        setIsLoggedIn(true); 
                     } else {
                         const errorMsg = (await roleResponse.json() as ErrorResponse).Message;
                         setLoginError(errorMsg || null);
                         localStorage.removeItem('jwtToken');
                         setIsLoggedIn(false);
                         setUser(null);
-                        navigate("/login"); // Przekierowanie do logowania, gdy token jest nieprawidłowy
+                        navigate("/login"); 
                         return;
                     }
                 } catch (error) {
@@ -168,10 +168,10 @@ const App: React.FC = () => {
                     localStorage.removeItem('jwtToken');
                     setIsLoggedIn(false);
                     setUser(null);
-                    navigate("/login"); // Przekierowanie do logowania w przypadku błędu
+                    navigate("/login"); 
                 }
             } else {
-                navigate("/login"); // Przekierowanie do logowania, gdy brak tokenu
+                navigate("/login"); 
             }
         };
 
@@ -199,7 +199,7 @@ const App: React.FC = () => {
         <div className="app-container">
             {user && <Navigation user={user} />}
             <div className="content-wrapper">
-                {user && <button onClick={handleLogout} className="logout-button">Logout</button>} {/* Warunkowe renderowanie */}
+                {user && <button onClick={handleLogout} className="logout-button">Logout</button>} 
                 <Content>
                     <Routes>
                         <Route path="/" element={<Home />} />
